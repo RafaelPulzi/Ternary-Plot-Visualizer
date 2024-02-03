@@ -1,0 +1,68 @@
+body{
+  background: wheat;
+}
+
+canvas {
+  border: 1px solid #000;
+  background-color: azure;
+}
+
+button{
+  cursor: pointer;
+}
+
+label {
+  margin-bottom: 5px;
+}
+
+input { 
+  margin-bottom: 15px;
+}
+
+.hidden {
+  display: none;
+}
+
+.popup {
+  background: #fff;
+  border-radius: 6px;
+  position: absolute;
+  top: 0%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.1);
+  text-align: left;
+  padding: 0 30px 30px;
+  color: #333;
+  visibility: hidden;    
+  transition: transform 0.4s, top 0.4s;
+}
+.popup h2 {
+  text-align: center;
+}
+/*Logo abaixo temos a classe que é referenciada no JS para mostrar o Pop-up*/
+.open-popup{
+  visibility: visible;
+  top: 50%;
+  transform: translate(-50%, -50%) scale(1);
+}
+#popup-information{
+  width: 430px;
+  height: 670px;
+}
+#popup-lines{
+  width: 500px;
+  height: 400px;
+  text-align: center;
+}
+
+
+.fechePopup {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+.inline-element {
+  display: inline;  
+}
+

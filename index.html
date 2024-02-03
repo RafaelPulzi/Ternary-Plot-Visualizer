@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gráfico Ternário</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<header>
+  <button id="bt_dataInput">Data Input</button><br><br>
+  <button id="bt_points">Points</button><br><br>
+  <button id="bt_lines" onclick="abraLines()">Lines</button><br><br>
+  <button id="bt_information" onclick="abraInformation()" type="button">Information</button><br><br>
+  <button id="bt_apperance">Apperance</button><br><br>
+  <button id="bt_printAndExport" onclick="exportCanvas()">Print and Export</button><br><br>
+</header>
+
+<body>
+
+  <canvas id="ternaryChart" width="600" height="600"></canvas>
+
+  <!--
+
+    ==================================================
+                    POP-UPS da Aplicação - COMEÇO
+    ==================================================
+
+  -->
+  <!--ABRE AS INFORMAÇÔES DA OPÇÃO "DataInput"-->
+
+  <!--ABRE AS INFORMAÇÔES DA OPÇÃO "Points"-->
+
+  <!--ABRE AS INFORMAÇÔES DA OPÇÃO "Lines"-->
+  <div id="popup-lines" class="popup">
+    <button id="fecheLines" class="fechePopup" onclick="fecheLines()">X</button>
+    <h2>Lines</h2>
+    <div class="inline">
+      <button onclick="mostrarConteudoLines('sourcesContent')">Sources</button>
+      <button onclick="mostrarConteudoLines('sustainableContent')">Sustainable</button>
+      <button onclick="mostrarConteudoLines('sensibilityContent')">Sensibility</button>
+      <button id="bt_simergy" onclick="togglePontoMedio()">Simergy</button>
+    </div>
+    <!--AQUI ESTÃO AS LINHAS DE SOURCES, OUTRAS LINHAS SERÃO REFERENCIADAS ABAIXO-->
+    <div id="sourcesContent">
+      <h3>Select the desire Source Lines</h3>
+      <input type="checkbox" id="sourceR_Mr_Sr">
+      <label>
+        R+Mr+Sr
+      </label>
+      <input type="number" id="valueSourceR_Mr_Sr" value="10" min="0" max="100" /><br>
+      <input type="checkbox" id="sourceN" />
+      <label>
+        N
+      </label>
+      <input type="number" id="valueSourceN" value="10" min="0" max="100" /><br>
+      <input type="checkbox" id="sourceMn_Sn" />
+      <label>
+        Mn+Sn
+      </label>
+      <input type="number" id="valueSourceMn_Sn" value="10" min="0" max="100" />
+      <div id="Lines_Of_Simmetry">
+        <h3>Lines Of Simmetry</h3>
+        <input type="checkbox" id="Active_Simmergy_Lines" />
+        <label>
+          Active Simmergy Lines
+        </label><br>
+        <input type="checkbox" id="Active_Regions" />
+        <label>
+          Active Regions
+        </label>
+        <div class="inline">
+          <button>OK</button>
+          <button>Apply</button>
+          <button>Cancel</button>
+        </div>
+      </div>
+    </div>
+
+
+    <div id="sustainableContent" class="hidden">
+      <h3>Select the desire Source Lines</h3>
+      <input type="checkbox" id="ESI_K1">
+      <label>
+        ESI = k1
+      </label>
+      <input type="number" id="valueESI_K1" value="7" min="0" /><br>
+      <input type="checkbox" id="ESI_K2">
+      <label>
+        ESI = k2
+      </label>
+      <input type="number" id="valueESI_K2" value="2.5" min="0" /><br>
+      <input type="checkbox" id="ESI_K3">
+      <label>
+        ESI = k3
+      </label>
+      <input type="number" id="valueESI_K3" value="2" min="0" /><br>
+    </div>
+
+    <div id="sensibilityContent" class="hidden">
+      <h3>Select the desire point</h3>
+      <input type="checkbox" id="sensibilityR_MR_SR">
+      <label>
+        R+Mr+Sr
+      </label>
+      <select id="valueSelectPointR_MR_SR" onchange="carregarDadosSensibilityR_MR_SR()">
+        <option value="">Selecione...</option>
+      </select><br>
+
+      </datalist>
+      <input type="checkbox" id="sensibilityN">
+      <label>
+       N
+      </label>
+      <select id="valueSelectPointN" onchange="carregarDados()">
+        <option value="">Selecione...</option>
+      </select><br>
+
+      </datalist>
+      <input type="checkbox" id="sensibilityMN_SN">
+      <label>
+        Mn+Sn
+      </label>
+      <select id="valueSelectPointMN_SN" onchange="carregarDados()">
+        <option value="">Selecione...</option>
+      </select><br>
+
+      </datalist>
+    </div>
+  </div>
+
+  <!--ABRE AS INFORMAÇÔES DA OPÇÃO "Information"-->
+  <div id="popup-information" class="popup">
+    <button id="fecheInformation" class="fechePopup" onclick="fecheInformation()">X</button>
+    <h2>Information</h2>
+
+    <label for="labelSelect">Escolha o Rótulo:</label>
+    <select id="labelSelect" onchange="carregarDados()">
+      <option value="">Selecione...</option>
+    </select><br><br>
+    <!--
+      Dados Principais
+    -->
+    <label for="">R sej/Unit</label>
+    <input type="text" id="inputR" disabled><br>
+
+
+    <label for="">N sej/Unit</label>
+    <input type="text" id="inputN" disabled><br>
+
+    <label for="">F sej/Unit</label>
+    <input type="text" id="inputF" disabled><br>
+
+    <label for="">Mr sej/Unit</label>
+    <input type="text" id="inputMr" disabled><br>
+
+    <label for="">Mn sej/Unit</label>
+    <input type="text" id="inputMn" disabled><br>
+
+    <label for="">Sr sej/Unit</label>
+    <input type="text" id="inputSr" disabled><br>
+
+    <label for="">Sn sej/Unit</label>
+    <input type="text" id="inputSn" disabled><br>
+
+    <label for="">Y sej/Unit</label>
+    <input type="text" id="inputY" disabled><br>
+    <!--
+      Dados Providos por calculo 
+    -->
+    <label for="">EYR</label>
+    <input type="text" id="inputEYR" disabled>
+    <label for="">EYR=Y/(Mn+Sn)</label>
+    <br>
+
+    <label for="">EIR</label>
+    <input type="text" id="inputEIR" disabled>
+    <label for="">EIR=(Mr+Mn+Sr+Sn)/(R+N)</label>
+    <br>
+
+    <label for="ELR">ELR</label>
+    <input type="text" id="inputELR" disabled>
+    <label for="ELR">ELR=(N+Mn+Sn)/(R+Mr+Sr)</label>
+    <br>
+
+    <label for="">ESI</label>
+    <input type="text" id="inputSI" disabled>
+    <label for="">ESI=EYR/ELR</label>
+    <br>
+
+    <label for="">%R</label>
+    <input type="text" id="inputPorcentageR" disabled>
+    <label for="">%R=(R+Mr+Sr)/Y</label>
+    <br>
+    <!--
+      Dados de porcentagem de cada extremidade do ternário 
+    -->
+    <label for="">R+Mr+Sr(%)</label>
+    <input type="text" id="porcentageR" disabled><br>
+
+    <label for="">N(%)</label>
+    <input type="text" id="porcentageN" disabled><br>
+
+    <label for="">Mn+Sn(%)</label>
+    <input type="text" id=" PorcentageF" disabled><br>
+
+  </div>
+
+  <!--ABRE AS INFORMAÇÔES DA OPÇÃO "Apperance"-->
+
+  <!--ABRE AS INFORMAÇÔES DA OPÇÃO "Print And Export"-->
+
+  <!--
+
+    ==================================================
+                    POP-UPS da Aplicação - FIM
+    ==================================================
+
+  -->
+
+  <script src="js/main.js">
+
+  </script>
+
+</body>
+
+</html>
