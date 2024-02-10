@@ -50,6 +50,7 @@ const rawData = [{
 
 const canvas = document.getElementById('ternaryChart');
 const ctx = canvas.getContext('2d');
+ctx.globalAlpha = 1;
 
 
 
@@ -96,7 +97,7 @@ function desenharGraficoTernario() {
     ctx.closePath();
     ctx.stroke();
 
-
+    
     const labelOffset = 20; // Ajuste para definir a distância dos Labels em relação às extremidades do triângulo
 
     ctx.font = "18px Arial";
@@ -127,6 +128,9 @@ function desenharGraficoTernario() {
             N: point.ELR = (point.N + point.Mn + point.Sn) / (point.R + point.Mr + point.Sr),
             O: point.SI = point.EYR / point.EIR,
             P: point.PorcentageR = (point.R + point.Mr + point.Sr) / point.Y,
+            Q: point.PorcentageRR = (point.R + point.Mr + point.Sr) / point.Y,
+            R: point.porcentageN = (point.N) / point.Y,
+            S: point.porcentageF = (point.Mn + point.Sn) / point.Y,
         };
 
         // Normaliza os valores  
@@ -177,6 +181,17 @@ AQUI A BAIXO ESTÂO ALGUMAS OUTRAS FUNCIONALIDADES DO GRAFICO, ESTOU APRENDENTO 
 DATA INPUT 
 */
 
+let dataInputPopUp = document.getElementById('popup-dataInput')
+
+function abraDataInput() {
+    dataInputPopUp.classList.add("open-popup");
+}
+
+
+function fecheDataInput() {
+    dataInputPopUp.classList.remove("open-popup");
+}
+
 
 /*
 POINTS
@@ -216,7 +231,7 @@ const inputSI = document.getElementById('inputSI');
 const inputPorcentageR = document.getElementById('inputPorcentageR');
 const porcentageR = document.getElementById('porcentageR');
 const porcentageN = document.getElementById('porcentageN');
-const PorcentageF = document.getElementById('PorcentageF');
+const porcentageF = document.getElementById('porcentageF');
 
 
 // Preencher a lista de rótulos
@@ -249,9 +264,9 @@ function carregarDados() {
         inputELR.value = selectedPoint.ELR.toExponential(2);
         inputSI.value = selectedPoint.SI.toExponential(2);
         inputPorcentageR.value = selectedPoint.PorcentageR.toFixed(2);
-        //porcentageR.value = selectedPoint.PorcentageR;
-        //porcentageN.value = selectedPoint.porcentageN;
-        //PorcentageF.value = selectedPoint.PorcentageF;
+        porcentageR.value = selectedPoint.PorcentageRR.toFixed(2);
+        porcentageN.value = selectedPoint.porcentageN.toFixed(2);
+        porcentageF.value = selectedPoint.porcentageF.toFixed(2);
     } else {
         // Limpar os campos se nenhum ponto for selecionado
         limparCampos();
@@ -273,9 +288,9 @@ function limparCampos() {
     inputELR.value = '';
     inputSI.value = '';
     inputPorcentageR.value = '';
-    //porcentageR.value.value = '';
-    //porcentageN.value.value = '';
-    //porcentageF.value.value = '';
+    porcentageR.value = '';
+    porcentageN.value = '';
+    porcentageF.value = '';
 }
 
 function mostrarConteudoLines(contentId) {
@@ -351,19 +366,182 @@ function mostrarSourceLinesR_Mr_Sr() {
 
 }
 
-nums_CalculosSource_M_MN_SN = [-0.58, -0.52, -0.46, -0.40, -0.35, -0.29, -0.23, -0.17, -0.12, -0.06, 0, 0.06, 0.12, 0.17, 0.23, 0.29, 0.35, 0.40, 0.46, 0.52, 0.58]
-// 1-percentage-RAIZ(3)*(nums_CalculosSource_M_MN_SN[])
+nums_CalculosSource_MN_SN = [(-1 / Math.sqrt(3)), (-1 / Math.sqrt(3) + 1 * (1 / Math.sqrt(3) / 10)), (-1 / Math.sqrt(3) + 2 * (1 / Math.sqrt(3) / 10)), (-1 / Math.sqrt(3) + 3 * (1 / Math.sqrt(3) / 10)), (-1 / Math.sqrt(3) + 4 * (1 / Math.sqrt(3) / 10)), (-1 / Math.sqrt(3) + 5 * (1 / Math.sqrt(3) / 10)), (-1 / Math.sqrt(3) + 6 * (1 / Math.sqrt(3) / 10)), (-1 / Math.sqrt(3) + 7 * (1 / Math.sqrt(3) / 10)), (-1 / Math.sqrt(3) + 8 * (1 / Math.sqrt(3) / 10)), (-1 / Math.sqrt(3) + 9 * (1 / Math.sqrt(3) / 10)), (-1 / Math.sqrt(3) + 10 * (1 / Math.sqrt(3) / 10)), (1/Math.sqrt(3) - 9 * (1/Math.sqrt(3))/10), (1/Math.sqrt(3) - 8 * (1/Math.sqrt(3))/10), (1/Math.sqrt(3) - 7 * (1/Math.sqrt(3))/10), (1/Math.sqrt(3) - 6 * (1/Math.sqrt(3))/10), (1/Math.sqrt(3) - 5 * (1/Math.sqrt(3))/10), (1/Math.sqrt(3) - 4 * (1/Math.sqrt(3))/10), (1/Math.sqrt(3) - 3 * (1/Math.sqrt(3))/10), (1/Math.sqrt(3) - 2 * (1/Math.sqrt(3))/10), (1/Math.sqrt(3) - 1 * (1/Math.sqrt(3))/10), (1 / Math.sqrt(3))]
+
+// Tanto em uma linha quanto a outra para pegar a porcentagem será feito o input x 2 / 100
 
 function mostrarSourceLinesN() {
     var checkboxN = document.getElementById("sourceN");
     var sourceN_Visivel = checkboxN.checked;
     var valueSourceN = document.getElementById("valueSourceN").value;
+
+    var porcentagemN = (valueSourceN * 2) / 100
+
+    if (sourceN_Visivel) {
+        var Y_values = [];
+
+        // Determinar o tamanho inicial da bolinha
+        var tamanhoBolinha = 2;
+
+        for (var i = 0; i < nums_CalculosSource_MN_SN.length; i++) {
+            var calculoLinhaN = 1 - porcentagemN - Math.sqrt(3) * (nums_CalculosSource_MN_SN[i]);
+
+
+            if (calculoLinhaN > 1) {
+                calculoLinhaN = 1;
+            }
+            else if (calculoLinhaN >= 0) {
+                // Arredonda para uma casa decimal se for maior ou igual a 0
+                calculoLinhaN = calculoLinhaN.toFixed(2);
+            }
+            Y_values.push(calculoLinhaN);
+        }
+
+        // Invertendo os valores de Y_values
+        var Y_values_invertidos = Y_values.slice().reverse();
+
+        // Desenhar as bolinhas
+        for (var i = 0; i < nums_CalculosSource_MN_SN.length; i++) {
+            var pixel = convertToPixel(nums_CalculosSource_MN_SN[i], Y_values_invertidos[i]);
+            ctx.beginPath();
+            ctx.arc(pixel.x, pixel.y, tamanhoBolinha, 0, Math.PI * 2);
+            ctx.fillStyle = "blue"; // Cor da bolinha
+            ctx.fill();
+            ctx.closePath();
+
+            // Aumentar o tamanho da bolinha a cada iteração
+            tamanhoBolinha += 1;
+        }
+
+        // Desenhar a linha
+        ctx.beginPath();
+        var startPoint1 = convertToPixel(nums_CalculosSource_MN_SN[0], Y_values[0] - 1);
+        ctx.moveTo(startPoint1.x, startPoint1.y);
+
+        for (var i = 0; i < nums_CalculosSource_MN_SN.length; i++) {
+            var pixel = convertToPixel(nums_CalculosSource_MN_SN[i], Y_values_invertidos[i]);
+            ctx.lineTo(pixel.x, pixel.y);
+        }
+        // Define a cor da linha
+        ctx.strokeStyle = "red";
+        ctx.stroke();
+        ctx.closePath();
+
+        // Adicione um rótulo ao ponto apex1
+        ctx.fillStyle = "black";
+        ctx.font = "14px Arial";
+        //ctx.fillText("Mn+Sn = " + (valueSourceN / 100).toFixed(2), startPoint.x - 50, startPoint.y - 10);
+    } else {
+        var Y_values = [];
+    }
 }
 
+/*
+function mostrarSourceLinesN() {
+    var checkboxN = document.getElementById("sourceN");
+    var sourceN_Visivel = checkboxN.checked;
+    var valueSourceN = document.getElementById("valueSourceN").value;
+
+    var porcentagemN = (valueSourceN * 2) / 100
+
+    if (sourceN_Visivel) {
+        var Y_values = [];
+
+        
+
+        for (var i = 0; i < nums_CalculosSource_MN_SN.length; i++) {
+            var calculoLinhaN = 1 - porcentagemN - Math.sqrt(3) * (nums_CalculosSource_MN_SN[i]);
+
+
+            if (calculoLinhaN > 1) {
+                calculoLinhaN = 1;
+            }
+            else if (calculoLinhaN >= 0) {
+                // Arredonda para uma casa decimal se for maior ou igual a 0
+                calculoLinhaN = calculoLinhaN.toFixed(2);
+            }
+            Y_values.push(calculoLinhaN);
+        }
+
+        // Invertendo os valores de Y_values
+        var Y_values_invertidos = Y_values.slice().reverse();
+
+
+        ctx.beginPath();
+        var startPoint1 = convertToPixel(nums_CalculosSource_MN_SN[20], Y_values[20]);
+        ctx.moveTo(startPoint1.x, startPoint1.y);
+
+        for (var i = 0; i < nums_CalculosSource_MN_SN.length; i++) {
+            var pixel = convertToPixel(nums_CalculosSource_MN_SN[i], Y_values_invertidos[i]);
+            ctx.lineTo(pixel.x, pixel.y);
+        }
+        // Define a cor da linha
+        ctx.strokeStyle = "red";
+        ctx.stroke();
+        ctx.closePath();
+
+
+        
+
+
+
+        // Adicione um rótulo ao ponto apex1
+        ctx.fillStyle = "black";
+        ctx.font = "14px Arial";
+        //ctx.fillText("Mn+Sn = " + (valueSourceN / 100).toFixed(2), startPoint.x - 50, startPoint.y - 10);
+    } else {
+        var Y_values = [];
+    }
+
+}
+*/
 function mostrarSourceLinesMn_Sn() {
     var checkboxMn_Sn = document.getElementById("sourceMn_Sn");
-    var sourceMn_Sn_Visivel = checkboxN.checked;
+    var sourceMn_Sn_Visivel = checkboxMn_Sn.checked;
     var valueSourceMn_Sn = document.getElementById("valueSourceMn_Sn").value;
+
+    var porcentagemMn_Sn = (valueSourceMn_Sn * 2) / 100
+
+    
+
+    if (sourceMn_Sn_Visivel) {
+        var Y_values = [];
+
+        
+
+        for (var i = 0; i < nums_CalculosSource_MN_SN.length; i++) {
+            var calculoLinhaMn_Sn = 1 - porcentagemMn_Sn - Math.sqrt(3) * (nums_CalculosSource_MN_SN[i]);
+            
+            // Se o valor for maior que 1, atribua 1, senão, atribua o valor calculado
+            if (calculoLinhaMn_Sn > 1) {
+                calculoLinhaMn_Sn = 1;
+            }
+            else if (calculoLinhaMn_Sn >= 0) {
+                // Arredonda para uma casa decimal se for maior ou igual a 0
+                calculoLinhaMn_Sn = calculoLinhaMn_Sn.toFixed(2);
+            }
+            Y_values.push(parseFloat(calculoLinhaMn_Sn)); // convertendo de string para número
+        }
+
+
+        //alert("Valores de Y_values: " + Y_values);
+
+
+        ctx.beginPath();
+        var startPoint = convertToPixel(nums_CalculosSource_MN_SN[0], Y_values[0]);
+        ctx.moveTo(startPoint.x, startPoint.y);
+
+        for (var i = 0; i < nums_CalculosSource_MN_SN.length; i++) {
+            var pixel = convertToPixel(nums_CalculosSource_MN_SN[i], Y_values[i]);
+            ctx.lineTo(pixel.x, pixel.y);
+        }
+        // Define a cor da linha
+        ctx.strokeStyle = "red";
+        ctx.stroke();
+        ctx.closePath();
+    } else {
+        Y_values = [];
+    }
 }
 
 function mostrarLinesOfSimmetry() {
@@ -410,6 +588,12 @@ OBS2: input é o dado que o usuário estara escolhendo para mexer na linha de SI
 
 var checkbox_ESI_K1 = document.getElementById("ESI_K1");
 checkbox_ESI_K1.addEventListener("change", mostrarSustainableLine_ESI_K1);
+
+var checkbox_ESI_K2 = document.getElementById("ESI_K2");
+checkbox_ESI_K2.addEventListener("change", mostrarSustainableLine_ESI_K2);
+
+var checkbox_ESI_K3 = document.getElementById("ESI_K3");
+checkbox_ESI_K3.addEventListener("change", mostrarSustainableLine_ESI_K3);
 
 function mostrarSustainableLine_ESI_K1() {
     var checkbox_ESI_K1 = document.getElementById("ESI_K1");
@@ -464,17 +648,10 @@ function mostrarSustainableLine_ESI_K1() {
                 ctx.fillText("ESI = " + valueSustainable_ESI_K1, pixel.x, pixel.y - 10); // Ajuste a posição do label conforme necessário
             }
         }
-
-
-
         // Define a cor da linha
         ctx.strokeStyle = "red";
         ctx.stroke();
         ctx.closePath();
-
-
-
-
 
     } else {
         // Limpa os arrays
@@ -483,6 +660,119 @@ function mostrarSustainableLine_ESI_K1() {
     }
 }
 
+function mostrarSustainableLine_ESI_K2() {
+    var checkbox_ESI_K2 = document.getElementById("ESI_K2");
+    var sustainableLine_ESI_K2_Visible = checkbox_ESI_K2.checked;
+    var valueSustainable_ESI_K2 = document.getElementById("valueESI_K2").value;
+
+    primeiro_calculo = (2 * valueSustainable_ESI_K2 + 1 - Math.sqrt(4 * valueSustainable_ESI_K2 + 1)) / (valueSustainable_ESI_K2 * 2) 
+
+    segundo_calculo = primeiro_calculo / 18
+
+    if (sustainableLine_ESI_K2_Visible) {
+        var X_values = [];
+        var Y_values = [];
+
+        Y_values.push(0);
+
+        var primeiro_calculo = (2 * valueSustainable_ESI_K2 + 1 - Math.sqrt(4 * valueSustainable_ESI_K2 + 1)) / (valueSustainable_ESI_K2 * 2);
+
+        var segundo_calculo = primeiro_calculo / 18;
+
+        for (var i = 1; i <= 17; i++) {
+            Y_values.push(segundo_calculo * i);
+        }
+
+        Y_values.push(primeiro_calculo);
+
+        for (var j = 0; j <= 19; j++) {
+            var quarto_calculo = (1 / Math.sqrt(3)) * (((2 * Y_values[j]) / (valueSustainable_ESI_K2 * (1 - Y_values[j]))) + Y_values[j] - 1);
+            X_values.push(quarto_calculo);
+        }
+
+
+        ctx.beginPath();
+
+        var startPoint = convertToPixel(X_values[0], Y_values[0]);
+        ctx.moveTo(startPoint.x, startPoint.y);
+
+        for (var j = 0; j <= 19; j++) {
+            var pixel = convertToPixel(X_values[j], Y_values[j]);
+            ctx.lineTo(pixel.x, pixel.y);
+
+            if (j === 18) {
+                ctx.fillStyle = "black";
+                ctx.font = "14px Arial";
+                ctx.fillText("ESI = " + valueSustainable_ESI_K2, pixel.x, pixel.y - 10); // Ajuste a posição do label conforme necessário
+            }
+        }
+
+        ctx.strokeStyle = "red";
+        ctx.stroke();
+        ctx.closePath();
+
+    } else {
+        X_values = [];
+        Y_values = [];
+    }
+}
+
+function mostrarSustainableLine_ESI_K3() {
+    var checkbox_ESI_K3 = document.getElementById("ESI_K3");
+    var sustainableLine_ESI_K3_Visible = checkbox_ESI_K3.checked;
+    var valueSustainable_ESI_K3 = document.getElementById("valueESI_K3").value;
+
+    primeiro_calculo = (2 * valueSustainable_ESI_K3 + 1 - Math.sqrt(4 * valueSustainable_ESI_K3 + 1)) / (valueSustainable_ESI_K3 * 2) 
+
+    segundo_calculo = primeiro_calculo / 18
+
+    if (sustainableLine_ESI_K3_Visible) {
+        var X_values = [];
+        var Y_values = [];
+
+        Y_values.push(0);
+
+        var primeiro_calculo = (2 * valueSustainable_ESI_K3 + 1 - Math.sqrt(4 * valueSustainable_ESI_K3 + 1)) / (valueSustainable_ESI_K3 * 2);
+
+        var segundo_calculo = primeiro_calculo / 18;
+
+        for (var i = 1; i <= 17; i++) {
+            Y_values.push(segundo_calculo * i);
+        }
+
+        Y_values.push(primeiro_calculo);
+
+        for (var j = 0; j <= 19; j++) {
+            var quarto_calculo = (1 / Math.sqrt(3)) * (((2 * Y_values[j]) / (valueSustainable_ESI_K3 * (1 - Y_values[j]))) + Y_values[j] - 1);
+            X_values.push(quarto_calculo);
+        }
+
+        ctx.beginPath();
+        var startPoint = convertToPixel(X_values[0], Y_values[0]);
+        ctx.moveTo(startPoint.x, startPoint.y);
+
+        for (var j = 0; j <= 19; j++) {
+            var pixel = convertToPixel(X_values[j], Y_values[j]);
+            ctx.lineTo(pixel.x, pixel.y);
+
+            if (j === 18) {
+                ctx.fillStyle = "black";
+                ctx.font = "14px Arial";
+                ctx.fillText("ESI = " + valueSustainable_ESI_K3, pixel.x, pixel.y - 10); // Ajuste a posição do label conforme necessário
+            }
+        }
+
+        ctx.strokeStyle = "red";
+        ctx.stroke();
+        ctx.closePath();
+
+    } else {
+        X_values = [];
+        Y_values = [];
+    }
+}
+
+
 /*===========SENSIBILITY LINES===========*/
 
 // Obtém a referência para os datalists
@@ -490,8 +780,6 @@ const valueSelectPointR_MR_SR = document.getElementById("valueSelectPointR_MR_SR
 const valueSelectPointN = document.getElementById("valueSelectPointN");
 const valueSelectPointMN_SN = document.getElementById("valueSelectPointMN_SN");
 
-//const checkboxSensibilityLinesR_Mr_Sr = document.getElementById("sensibilityR_MR_SR");
-//checkboxSensibilityLinesR_Mr_Sr.addEventListener("change", mostrarSensibilityLinesR_Mr_Sr);
 
 rawData.forEach(point => {
     const optionR_MR_SR = document.createElement('option');
@@ -553,61 +841,102 @@ function carregarDadosSensibilityR_MR_SR() {
     }
 }
 
+function carregarDadosSensibilityN() {
+    const SelectValuePointN = valueSelectPointN.value;
 
+    const selectedPointN = rawData.find(point => point.label === SelectValuePointN);
 
+    // Verifica se o ponto selecionado foi encontrado
+    if (selectedPointN) {
+        // Normaliza os dados do ponto selecionado para a escala do gráfico ternário (0 a 1)
+        const normalizedPoint = {
+            A: selectedPointN.R / (selectedPointN.R + selectedPointN.N + selectedPointN.Mr + selectedPointN.Sr + selectedPointN.Mn + selectedPointN.Sn),
+            B: selectedPointN.Mr / (selectedPointN.R + selectedPointN.N + selectedPointN.Mr + selectedPointN.Sr + selectedPointN.Mn + selectedPointN.Sn),
+            C: selectedPointN.Sr / (selectedPointN.R + selectedPointN.N + selectedPointN.Mr + selectedPointN.Sr + selectedPointN.Mn + selectedPointN.Sn),
+            D: selectedPointN.N / (selectedPointN.R + selectedPointN.N + selectedPointN.Mr + selectedPointN.Sr + selectedPointN.Mn + selectedPointN.Sn),
+            E: selectedPointN.Mn / (selectedPointN.R + selectedPointN.N + selectedPointN.Mr + selectedPointN.Sr + selectedPointN.Mn + selectedPointN.Sn),
+            F: selectedPointN.Sn / (selectedPointN.R + selectedPointN.N + selectedPointN.Mr + selectedPointN.Sr + selectedPointN.Mn + selectedPointN.Sn),
+            G: selectedPointN.Y = selectedPointN.R + selectedPointN.Mr + selectedPointN.Sr + selectedPointN.N + selectedPointN.Mn + selectedPointN.Sn,
+            H: selectedPointN.Ró = (selectedPointN.R + selectedPointN.Mr + selectedPointN.Sr) / selectedPointN.Y,
+            I: selectedPointN.Eta = selectedPointN.N / selectedPointN.Y,
+            J: selectedPointN.Fi = (selectedPointN.Mn + selectedPointN.Sn) / selectedPointN.Y,
+            K: selectedPointN.F = selectedPointN.Mn + selectedPointN.Sn + selectedPointN.Mr + selectedPointN.Sr,
+            L: selectedPointN.EYR = 1 / (selectedPointN.Mn + selectedPointN.Sn),
+            M: selectedPointN.EIR = selectedPointN.F / (selectedPointN.N + (selectedPointN.R + selectedPointN.Mr + selectedPointN.Sr)),
+            N: selectedPointN.ELR = (selectedPointN.N + selectedPointN.Mn + selectedPointN.Sn) / (selectedPointN.R + selectedPointN.Mr + selectedPointN.Sr),
+            O: selectedPointN.SI = selectedPointN.EYR / selectedPointN.EIR,
+            P: selectedPointN.PorcentageR = (selectedPointN.R + selectedPointN.Mr + selectedPointN.Sr) / selectedPointN.Y,
+        };
 
-/*
-// Adiciona ouvintes de mudança para cada checkbox
-const checkboxN = document.getElementById("sensibilityN");
-checkboxN.addEventListener("change", () => mostrarSourceLines("N"));
-    
-const checkboxMN_SN = document.getElementById("sensibilityMN_SN");
-checkboxMN_SN.addEventListener("change", () => mostrarSourceLines("MN_SN"));
-*/
+        // Normaliza os valores  
+        const x = (2 * normalizedPoint.J + normalizedPoint.H - 1) / Math.sqrt(3);
+        const y = normalizedPoint.H;
 
+        var pixel = convertToPixel(x, y);
+        var startPoint = convertToPixel(-0.58, 0);
 
-
-
-/*
-function mostrarSensibilityLinesR_Mr_Sr() {
-    const checkboxSensibilityLinesR_Mr_Sr = document.getElementById("sensibilityR_MR_SR");
-    var sensiblityR_Mr_Sr_Visivel = checkboxSensibilityLinesR_Mr_Sr.checked;
-    var valueSensibilityR_Mr_Sr = document.getElementById("valueSelectPointR_MR_SR").value;
-
-    // Encontra o ponto correspondente à label selecionada
-    const selectedPoint = rawData.find(point => point.label === valueSensibilityR_Mr_Sr);
-
-    if (selectedPoint) {
-        var startPoint = convertToPixel(0, 1);
-
-        if (sensiblityR_Mr_Sr_Visivel && selectedPoint) {
-            // Converte as coordenadas do ponto escolhido para pixels
-
-            const x = (2 * selectedPoint.F + selectedPoint.H - 1) / Math.sqrt(3);
-            const y = selectedPoint.H
-
-              const selectedPointPixel = convertToPixel(x, y);
-
-            ctx.beginPath();
-            ctx.moveTo(startPoint.x, startPoint.y);
-            ctx.lineTo(selectedPointPixel.x, selectedPointPixel.y);
-            ctx.strokeStyle = "red";
-            ctx.stroke();
-            ctx.closePath();
-        } else {
-            // Adicione um console.log ou alert para indicar que a label não foi encontrada
-            alert("Label não encontrada:", valueSensibilityR_Mr_Sr);
-        }
-
-
-
+        // Desenha a linha entre o ponto selecionado e o ponto de origem
+        ctx.beginPath();
+        ctx.moveTo(startPoint.x, startPoint.y);
+        ctx.lineTo(pixel.x, pixel.y);
+        ctx.strokeStyle = "red";
+        ctx.stroke();
+        ctx.closePath();
 
     }
-
-
-
 }
-*/
+
+function carregarDadosSensibility_Mn_Sn() {
+    const SelectValuePoint_Mn_Sn = valueSelectPointMN_SN.value;
+
+    const selectedPoint_Mn_Sn = rawData.find(point => point.label === SelectValuePoint_Mn_Sn);
+
+    // Verifica se o ponto selecionado foi encontrado
+    if (selectedPoint_Mn_Sn) {
+        // Normaliza os dados do ponto selecionado para a escala do gráfico ternário (0 a 1)
+        const normalizedPoint = {
+            A: selectedPoint_Mn_Sn.R / (selectedPoint_Mn_Sn.R + selectedPoint_Mn_Sn.N + selectedPoint_Mn_Sn.Mr + selectedPoint_Mn_Sn.Sr + selectedPoint_Mn_Sn.Mn + selectedPoint_Mn_Sn.Sn),
+            B: selectedPoint_Mn_Sn.Mr / (selectedPoint_Mn_Sn.R + selectedPoint_Mn_Sn.N + selectedPoint_Mn_Sn.Mr + selectedPoint_Mn_Sn.Sr + selectedPoint_Mn_Sn.Mn + selectedPoint_Mn_Sn.Sn),
+            C: selectedPoint_Mn_Sn.Sr / (selectedPoint_Mn_Sn.R + selectedPoint_Mn_Sn.N + selectedPoint_Mn_Sn.Mr + selectedPoint_Mn_Sn.Sr + selectedPoint_Mn_Sn.Mn + selectedPoint_Mn_Sn.Sn),
+            D: selectedPoint_Mn_Sn.N / (selectedPoint_Mn_Sn.R + selectedPoint_Mn_Sn.N + selectedPoint_Mn_Sn.Mr + selectedPoint_Mn_Sn.Sr + selectedPoint_Mn_Sn.Mn + selectedPoint_Mn_Sn.Sn),
+            E: selectedPoint_Mn_Sn.Mn / (selectedPoint_Mn_Sn.R + selectedPoint_Mn_Sn.N + selectedPoint_Mn_Sn.Mr + selectedPoint_Mn_Sn.Sr + selectedPoint_Mn_Sn.Mn + selectedPoint_Mn_Sn.Sn),
+            F: selectedPoint_Mn_Sn.Sn / (selectedPoint_Mn_Sn.R + selectedPoint_Mn_Sn.N + selectedPoint_Mn_Sn.Mr + selectedPoint_Mn_Sn.Sr + selectedPoint_Mn_Sn.Mn + selectedPoint_Mn_Sn.Sn),
+            G: selectedPoint_Mn_Sn.Y = selectedPoint_Mn_Sn.R + selectedPoint_Mn_Sn.Mr + selectedPoint_Mn_Sn.Sr + selectedPoint_Mn_Sn.N + selectedPoint_Mn_Sn.Mn + selectedPoint_Mn_Sn.Sn,
+            H: selectedPoint_Mn_Sn.Ró = (selectedPoint_Mn_Sn.R + selectedPoint_Mn_Sn.Mr + selectedPoint_Mn_Sn.Sr) / selectedPoint_Mn_Sn.Y,
+            I: selectedPoint_Mn_Sn.Eta = selectedPoint_Mn_Sn.N / selectedPoint_Mn_Sn.Y,
+            J: selectedPoint_Mn_Sn.Fi = (selectedPoint_Mn_Sn.Mn + selectedPoint_Mn_Sn.Sn) / selectedPoint_Mn_Sn.Y,
+            K: selectedPoint_Mn_Sn.F = selectedPoint_Mn_Sn.Mn + selectedPoint_Mn_Sn.Sn + selectedPoint_Mn_Sn.Mr + selectedPoint_Mn_Sn.Sr,
+            L: selectedPoint_Mn_Sn.EYR = 1 / (selectedPoint_Mn_Sn.Mn + selectedPoint_Mn_Sn.Sn),
+            M: selectedPoint_Mn_Sn.EIR = selectedPoint_Mn_Sn.F / (selectedPoint_Mn_Sn.N + (selectedPoint_Mn_Sn.R + selectedPoint_Mn_Sn.Mr + selectedPoint_Mn_Sn.Sr)),
+            N: selectedPoint_Mn_Sn.ELR = (selectedPoint_Mn_Sn.N + selectedPoint_Mn_Sn.Mn + selectedPoint_Mn_Sn.Sn) / (selectedPoint_Mn_Sn.R + selectedPoint_Mn_Sn.Mr + selectedPoint_Mn_Sn.Sr),
+            O: selectedPoint_Mn_Sn.SI = selectedPoint_Mn_Sn.EYR / selectedPoint_Mn_Sn.EIR,
+            P: selectedPoint_Mn_Sn.PorcentageR = (selectedPoint_Mn_Sn.R + selectedPoint_Mn_Sn.Mr + selectedPoint_Mn_Sn.Sr) / selectedPoint_Mn_Sn.Y,
+        };
+
+        // Normaliza os valores  
+        const x = (2 * normalizedPoint.J + normalizedPoint.H - 1) / Math.sqrt(3);
+        const y = normalizedPoint.H;
+
+        var pixel = convertToPixel(x, y);
+        var startPoint = convertToPixel(0.58, 0);
+
+        // Desenha a linha entre o ponto selecionado e o ponto de origem
+        ctx.beginPath();
+        ctx.moveTo(startPoint.x, startPoint.y);
+        ctx.lineTo(pixel.x, pixel.y);
+        ctx.strokeStyle = "red";
+        ctx.stroke();
+        ctx.closePath();
+
+    }
+}
+
+
+
+
+
+
+
 
 /*===========SIMERGY LINES===========*/
 
@@ -711,19 +1040,59 @@ function ShowLinhasSensibilidadeR_Mr_Sr() {
     requestAnimationFrame(ShowLinhasSensibilidadeR_Mr_Sr);
 }
 
+function ShowLinhasSensibilidadeN() {
+    carregarDadosSensibilityN();
+    requestAnimationFrame(ShowLinhasSensibilidadeN);
+}
+
+
+
+function ShowLinhasSensibilidade_Mn_Sn() {
+    carregarDadosSensibility_Mn_Sn();
+    requestAnimationFrame( ShowLinhasSensibilidade_Mn_Sn);
+}
+
 function ShowSustainableLine_ESI_K1() {
     mostrarSustainableLine_ESI_K1();
     requestAnimationFrame(ShowSustainableLine_ESI_K1);
 }
 
 
+function ShowSustainableLine_ESI_K2() {
+    mostrarSustainableLine_ESI_K2();
+    requestAnimationFrame(ShowSustainableLine_ESI_K2);
+}
+
+function ShowSustainableLine_ESI_K3() {
+    mostrarSustainableLine_ESI_K3();
+    requestAnimationFrame(ShowSustainableLine_ESI_K3);
+}
+
+
+function ShowSourceLinesN() {
+    mostrarSourceLinesN();
+    requestAnimationFrame(ShowSourceLinesN);
+}
+
+function ShowSourceLinesMn_Sn() {
+    mostrarSourceLinesMn_Sn();
+    requestAnimationFrame(ShowSourceLinesMn_Sn);
+}
+
+
 function ShowLines() {
     ShowSimmetryLines();
     animate();
+    ShowSourceLinesMn_Sn();
+    ShowSourceLinesN();
     ShowLinhasSensibilidadeR_Mr_Sr();
+    ShowLinhasSensibilidadeN()
+    ShowLinhasSensibilidade_Mn_Sn()
     ShowSimmergLineN();
     ShowSimmergLineMn_Sn();
     ShowSustainableLine_ESI_K1();
+    ShowSustainableLine_ESI_K2();
+    ShowSustainableLine_ESI_K3();
 
 }
 
@@ -748,6 +1117,11 @@ function exportCanvas() {
     // Remove o link temporário do corpo do documento
     document.body.removeChild(downloadLink);
 }
+
+// https://pt.stackoverflow.com/questions/266191/como-transformar-imagem-canvas-em-png
+
+
+
 
 /*
 ====================================================================
