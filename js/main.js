@@ -370,73 +370,7 @@ nums_CalculosSource_MN_SN = [(-1 / Math.sqrt(3)), (-1 / Math.sqrt(3) + 1 * (1 / 
 
 // Tanto em uma linha quanto a outra para pegar a porcentagem será feito o input x 2 / 100
 
-function mostrarSourceLinesN() {
-    var checkboxN = document.getElementById("sourceN");
-    var sourceN_Visivel = checkboxN.checked;
-    var valueSourceN = document.getElementById("valueSourceN").value;
-
-    var porcentagemN = (valueSourceN * 2) / 100
-
-    if (sourceN_Visivel) {
-        var Y_values = [];
-
-        // Determinar o tamanho inicial da bolinha
-        var tamanhoBolinha = 2;
-
-        for (var i = 0; i < nums_CalculosSource_MN_SN.length; i++) {
-            var calculoLinhaN = 1 - porcentagemN - Math.sqrt(3) * (nums_CalculosSource_MN_SN[i]);
-
-
-            if (calculoLinhaN > 1) {
-                calculoLinhaN = 1;
-            }
-            else if (calculoLinhaN >= 0) {
-                // Arredonda para uma casa decimal se for maior ou igual a 0
-                calculoLinhaN = calculoLinhaN.toFixed(2);
-            }
-            Y_values.push(calculoLinhaN);
-        }
-
-        // Invertendo os valores de Y_values
-        var Y_values_invertidos = Y_values.slice().reverse();
-
-        // Desenhar as bolinhas
-        for (var i = 0; i < nums_CalculosSource_MN_SN.length; i++) {
-            var pixel = convertToPixel(nums_CalculosSource_MN_SN[i], Y_values_invertidos[i]);
-            ctx.beginPath();
-            ctx.arc(pixel.x, pixel.y, tamanhoBolinha, 0, Math.PI * 2);
-            ctx.fillStyle = "blue"; // Cor da bolinha
-            ctx.fill();
-            ctx.closePath();
-
-            // Aumentar o tamanho da bolinha a cada iteração
-            tamanhoBolinha += 1;
-        }
-
-        // Desenhar a linha
-        ctx.beginPath();
-        var startPoint1 = convertToPixel(nums_CalculosSource_MN_SN[0], Y_values[0] - 1);
-        ctx.moveTo(startPoint1.x, startPoint1.y);
-
-        for (var i = 0; i < nums_CalculosSource_MN_SN.length; i++) {
-            var pixel = convertToPixel(nums_CalculosSource_MN_SN[i], Y_values_invertidos[i]);
-            ctx.lineTo(pixel.x, pixel.y);
-        }
-        // Define a cor da linha
-        ctx.strokeStyle = "red";
-        ctx.stroke();
-        ctx.closePath();
-
-        // Adicione um rótulo ao ponto apex1
-        ctx.fillStyle = "black";
-        ctx.font = "14px Arial";
-        //ctx.fillText("Mn+Sn = " + (valueSourceN / 100).toFixed(2), startPoint.x - 50, startPoint.y - 10);
-    } else {
-        var Y_values = [];
-    }
-}
-
-/*
+//Essa é a função que mostra o Mn+Sn
 function mostrarSourceLinesN() {
     var checkboxN = document.getElementById("sourceN");
     var sourceN_Visivel = checkboxN.checked;
@@ -468,7 +402,7 @@ function mostrarSourceLinesN() {
 
 
         ctx.beginPath();
-        var startPoint1 = convertToPixel(nums_CalculosSource_MN_SN[20], Y_values[20]);
+        var startPoint1 = convertToPixel(nums_CalculosSource_MN_SN[21], Y_values[21]);
         ctx.moveTo(startPoint1.x, startPoint1.y);
 
         for (var i = 0; i < nums_CalculosSource_MN_SN.length; i++) {
@@ -482,19 +416,20 @@ function mostrarSourceLinesN() {
 
 
         
-
+        var labelCordinates = convertToPixel(nums_CalculosSource_MN_SN[0], Y_values[0])
 
 
         // Adicione um rótulo ao ponto apex1
         ctx.fillStyle = "black";
         ctx.font = "14px Arial";
-        //ctx.fillText("Mn+Sn = " + (valueSourceN / 100).toFixed(2), startPoint.x - 50, startPoint.y - 10);
+        ctx.fillText("Mn+Sn = " + (valueSourceN / 100).toFixed(2), labelCordinates.x + 350, labelCordinates.y - 10);
     } else {
         var Y_values = [];
     }
 
 }
-*/
+
+//Essa é a função que mostra o N
 function mostrarSourceLinesMn_Sn() {
     var checkboxMn_Sn = document.getElementById("sourceMn_Sn");
     var sourceMn_Sn_Visivel = checkboxMn_Sn.checked;
@@ -539,6 +474,14 @@ function mostrarSourceLinesMn_Sn() {
         ctx.strokeStyle = "red";
         ctx.stroke();
         ctx.closePath();
+
+        var labelCordinates = convertToPixel(nums_CalculosSource_MN_SN[0], Y_values[0])
+
+
+        // Adicione um rótulo ao ponto apex1
+        ctx.fillStyle = "black";
+        ctx.font = "14px Arial";
+        ctx.fillText("N = " + (valueSourceMn_Sn / 100).toFixed(2), labelCordinates.x, labelCordinates.y - 10);
     } else {
         Y_values = [];
     }
