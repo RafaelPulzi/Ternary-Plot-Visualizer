@@ -82,7 +82,7 @@ function convertToPixel(x, y) {
 
 
 function desenharGraficoTernario() {
-
+    var counter = 1; 
 
     // Define os vértices do triângulo
     var startPoint = convertToPixel(0, 1);
@@ -144,6 +144,11 @@ function desenharGraficoTernario() {
         ctx.arc(pixel.x, pixel.y, 5, 0, 2 * Math.PI);
         ctx.fill();
 
+        // Adiciona um rótulo numerado
+        ctx.fillStyle = "black";
+        ctx.font = "14px Arial";
+        ctx.fillText(counter, pixel.x + 10, pixel.y + 6);
+
         // Adiciona um evento de mouseover para exibir o rótulo quando o mouse passar sobre o ponto
         canvas.addEventListener('mousemove', (event) => {
             const mouseX = event.clientX - canvas.getBoundingClientRect().left;
@@ -153,6 +158,8 @@ function desenharGraficoTernario() {
                 exibirRotulo(point.Ró, x, y);
             }
         });
+
+        counter++;
     });
 
 }
@@ -715,6 +722,24 @@ function mostrarSustainableLine_ESI_K3() {
     }
 }
 
+var quantityInputs = document.getElementsByClassName('acrecimo');
+
+for (var i = 0; i < quantityInputs.length; i++) {
+    quantityInputs[i].addEventListener('change', function() {
+        var quantityValue = parseInt(this.value);
+
+        if (quantityValue >= 1 && quantityValue < 10) {
+            quantityInputs.value = 0
+            this.step = 0.1; 
+        } else if (quantityValue >= 10) {
+            quantityInputs.value = 0
+            this.step = 1; // Altera o step para 2 se a quantidade estiver entre 10 e 19
+        } else if (quantityValue <= 1){
+            quantityInputs.value = 0.99
+            this.step = 0.01;
+        }
+    });
+}
 
 /*===========SENSIBILITY LINES===========*/
 
