@@ -143,11 +143,15 @@ function desenharGraficoTernario() {
         ctx.beginPath();
         ctx.arc(pixel.x, pixel.y, 5, 0, 2 * Math.PI);
         ctx.fill();
-
+     
         // Adiciona um rótulo numerado
         ctx.fillStyle = "black";
         ctx.font = "14px Arial";
-        ctx.fillText(counter, pixel.x + 10, pixel.y + 6);
+        if (point.label === "Simergy") {
+            ctx.fillText("Simergy", pixel.x + 10, pixel.y + 6);
+        } else {
+            ctx.fillText(counter, pixel.x + 10, pixel.y + 6);
+        }
 
         // Adiciona um evento de mouseover para exibir o rótulo quando o mouse passar sobre o ponto
         canvas.addEventListener('mousemove', (event) => {
@@ -158,17 +162,13 @@ function desenharGraficoTernario() {
                 exibirRotulo(point.Ró, x, y);
             }
         });
+        
 
         counter++;
     });
 
 }
 
-// Função auxiliar para exibir o rótulo
-function exibirRotulo(label, x, y) {
-    ctx.fillStyle = 'black';
-    ctx.fillText(label, x + 10, y - 10);
-}
 
 
 
@@ -203,6 +203,102 @@ function fecheDataInput() {
 /*
 POINTS
 */
+
+let pointsPopUp = document.getElementById('popup-points')
+
+function abraPoints() {
+    pointsPopUp.classList.add("open-popup");
+}
+
+
+function fechePoints() {
+    pointsPopUp.classList.remove("open-popup");
+}
+
+// Função para adicionar pontos dinamicamente
+function adicionarPontos() {
+    const pointsContainer = document.getElementById('points-container');
+
+    // Iterar sobre os dados brutos e adicionar os pontos
+    rawData.forEach((point, index) => {
+        // Criar um elemento de div para o ponto
+        const pointDiv = document.createElement('div');
+        pointDiv.classList.add('point');
+
+        // Adicionar o número do ponto
+        const pointNumber = document.createElement('span');
+        pointNumber.textContent = `${index + 1} `;
+        pointDiv.appendChild(pointNumber);
+
+
+        // Criar uma checkbox para ativar/desativar o ponto
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = `checkbox-${index} `;
+        checkbox.checked = true; 
+        pointDiv.appendChild(checkbox);
+
+        // Adicionar um ouvinte de evento para monitorar as mudanças na checkbox
+        checkbox.addEventListener('change', function() {
+            if (checkbox.checked) {
+                // Se estiver marcada, desenhar o ponto no gráfico
+                desenharPontoNoGrafico(point);
+            } else {
+                // Se não estiver marcada, ocultar o ponto do gráfico
+                ocultarPontoNoGrafico(point);
+            }
+        });
+
+        // Criar um input desativado para mostrar o nome do ponto
+        const inputName = document.createElement('input');
+        inputName.type = 'text';
+        inputName.value = point.label;
+        inputName.disabled = true;
+        pointDiv.appendChild(inputName);
+
+        
+        // Adicionar o ponto à div de contêiner de pontos
+        pointsContainer.appendChild(pointDiv);
+    });
+}
+
+// Função para desenhar um ponto no gráfico
+function desenharPontoNoGrafico(point) {
+    // Normalizar os dados do ponto
+    const normalizedPoint = {
+        x: (2 * point.F + point.H - 1) / Math.sqrt(3),
+        y: point.H
+    };
+
+    // Converter coordenadas normalizadas para pixels no canvas
+    const pixel = convertToPixel(normalizedPoint.x, normalizedPoint.y);
+
+    // Desenhar o ponto no canvas
+    ctx.beginPath();
+    ctx.arc(pixel.x, pixel.y, 5, 0, 2 * Math.PI);
+    ctx.fill();
+    
+}
+
+// Função para ocultar um ponto do gráfico
+function ocultarPontoNoGrafico(point) {
+    // Normalizar os dados do ponto
+    const normalizedPoint = {
+        x: (2 * point.F + point.H - 1) / Math.sqrt(3),
+        y: point.H
+    };
+
+    // Converter coordenadas normalizadas para pixels no canvas
+    const pixel = convertToPixel(normalizedPoint.x, normalizedPoint.y);
+
+    // Limpar a área do ponto no canvas
+    ctx.clearRect(pixel.x - 5, pixel.y - 5, 10, 10);
+}
+
+// Chamada da função para adicionar os pontos ao carregar a página
+adicionarPontos();
+
+
 
 
 /*
@@ -327,6 +423,16 @@ function abraLines() {
 
 function fecheLines() {
     linesPopUp.classList.remove("open-popup");
+}
+
+function toggleActiveButton(button) {
+    // Remove a classe ativa de todos os botões
+    var buttons = document.querySelectorAll('.btn');
+    buttons.forEach(function(btn) {
+        btn.classList.remove('active');
+    });
+    // Adiciona a classe ativa apenas ao botão clicado
+    button.classList.add('active');
 }
 
 
@@ -494,8 +600,17 @@ function mostrarSourceLinesMn_Sn() {
     }
 }
 
+function drawDashedLine(pattern, startPoint, endPoint) {
+    ctx.beginPath();
+    ctx.setLineDash(pattern);
+    ctx.moveTo(startPoint.x, startPoint.y);
+    ctx.lineTo(endPoint.x, endPoint.y);
+    ctx.strokeStyle = "black";
+    ctx.stroke();
+}
+
 function mostrarLinesOfSimmetry() {
-    var checkboxSimmergyLines = document.getElementById("Active_Simmergy_Lines")
+    var checkboxSimmergyLines = document.getElementById("Active_Simmergy_Lines");
     var Active_Simmergy_Lines_Visivel = checkboxSimmergyLines.checked;
 
     var apex1Horizontal = convertToPixel(-0.58, 0.5);
@@ -505,10 +620,13 @@ function mostrarLinesOfSimmetry() {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.strokeStyle = "black";
-    desenharGraficoTernario();
 
+    desenharGraficoTernario();
+    
     if (Active_Simmergy_Lines_Visivel) {
+        // Define o estilo de linha pontilhada apenas para as linhas de simetria
         ctx.beginPath();
+        drawDashedLine([15, 3, 3, 3], apex1Horizontal, apex2Horizontal); // 5 pixels sólidos seguidos por 3 pixels transparentes
         ctx.moveTo(apex1Horizontal.x, apex1Horizontal.y);
         ctx.lineTo(apex2Horizontal.x, apex2Horizontal.y);
         ctx.strokeStyle = "black";
@@ -516,16 +634,142 @@ function mostrarLinesOfSimmetry() {
         ctx.closePath();
 
         ctx.beginPath();
+        drawDashedLine([15, 3, 3, 3], apex1Horizontal, apex2Horizontal);  // 5 pixels sólidos seguidos por 3 pixels transparentes
         ctx.moveTo(apex1Vertical.x, apex1Vertical.y + 0.05);
         ctx.lineTo(apex2Vertical.x, apex2Vertical.y + 0.05);
         ctx.strokeStyle = "black";
         ctx.stroke();
         ctx.closePath();
-        //aqui desenha a cruz bonitinha 
     }
-
+    ctx.setLineDash([]);
 }
 
+function mostrarRegios() {
+    var checkboxRegions = document.getElementById("Active_Regions");
+    var activeRegios_Visivel = checkboxRegions.checked;
+
+    // ====================== FIRST SET OF LINES (HORIZONTAL) ===================
+
+    var apex1HorizontalFirstLine = convertToPixel(-0.53, 0.09);
+    var apex2HorizontalFirstLine = convertToPixel(0.53, 0.09);
+
+    var apex1HorizontalSecondLine = convertToPixel(-0.39, 0.33);
+    var apex2HorizontalSecondLine = convertToPixel(0.39, 0.33);
+
+    //======================== SECOND SET OF LINES (DIAGONAL)  ===================================
+
+    numsRegiosFirstLine= [(-1 / Math.sqrt(3) + 5 * (1 / Math.sqrt(3) / 10)), (-1 / Math.sqrt(3) + 6 * (1 / Math.sqrt(3) / 10)), (-1 / Math.sqrt(3) + 7 * (1 / Math.sqrt(3) / 10)), (-1 / Math.sqrt(3) + 8 * (1 / Math.sqrt(3) / 10)), (-1 / Math.sqrt(3) + 9 * (1 / Math.sqrt(3) / 10)), (-1 / Math.sqrt(3) + 10 * (1 / Math.sqrt(3) / 10)), (1/Math.sqrt(3) - 9 * (1/Math.sqrt(3))/10), (1/Math.sqrt(3) - 8 * (1/Math.sqrt(3))/10), (1/Math.sqrt(3) - 7 * (1/Math.sqrt(3))/10), (1/Math.sqrt(3) - 6 * (1/Math.sqrt(3))/10), (1/Math.sqrt(3) - 5 * (1/Math.sqrt(3))/10)]
+
+    numsRegiosSecondLine = [(-1 / Math.sqrt(3) + 4 * (1 / Math.sqrt(3) / 10)), (-1 / Math.sqrt(3) + 5 * (1 / Math.sqrt(3) / 10)), (-1 / Math.sqrt(3) + 6 * (1 / Math.sqrt(3) / 10)), (-1 / Math.sqrt(3) + 7 * (1 / Math.sqrt(3) / 10)), (-1 / Math.sqrt(3) + 8 * (1 / Math.sqrt(3) / 10)), (-1 / Math.sqrt(3) + 9 * (1 / Math.sqrt(3) / 10)), (-1 / Math.sqrt(3) + 10 * (1 / Math.sqrt(3) / 10)), (1/Math.sqrt(3) - 9 * (1/Math.sqrt(3))/10), (1/Math.sqrt(3) - 8 * (1/Math.sqrt(3))/10), (1/Math.sqrt(3) - 7 * (1/Math.sqrt(3))/10), (1/Math.sqrt(3) - 6 * (1/Math.sqrt(3))/10), (1/Math.sqrt(3) - 5 * (1/Math.sqrt(3))/10), (1/Math.sqrt(3) - 4 * (1/Math.sqrt(3))/10)]
+
+
+    var porcentagemFisrtDiagonalLine = (50 * 2) / 100
+
+    var porcentagemSecondDiagonalLine = (20 * 2) / 100
+
+    //======================== THIRD SET OF LINES (SUSTAINABLE)  ===================================
+
+    
+    
+
+    if (activeRegios_Visivel) {
+
+        ctx.beginPath();
+        ctx.moveTo(apex1HorizontalFirstLine.x, apex1HorizontalFirstLine.y);
+        ctx.lineTo(apex2HorizontalFirstLine.x, apex2HorizontalFirstLine.y);
+        ctx.strokeStyle = "black";
+        ctx.stroke();
+        ctx.closePath();
+
+        ctx.beginPath();
+        ctx.moveTo(apex1HorizontalSecondLine.x, apex1HorizontalSecondLine.y);
+        ctx.lineTo(apex2HorizontalSecondLine.x, apex2HorizontalSecondLine.y);
+        ctx.strokeStyle = "black";
+        ctx.stroke();
+        ctx.closePath();
+
+        //------------------------------------------------------------------
+
+        var Y_valuesFisrtDiagonalLine = [];
+
+        var Y_valuesSecondDiagonalLine = [];
+
+        
+
+        for (var i = 0; i < numsRegiosFirstLine.length; i++) {
+            var calculoFisrtDiagonalLine = 1 - porcentagemFisrtDiagonalLine - Math.sqrt(3) * (numsRegiosFirstLine[i]);
+
+
+            if (calculoFisrtDiagonalLine > 1) {
+                calculoFisrtDiagonalLine = 1;
+            }
+            else if (calculoFisrtDiagonalLine >= 0) {
+                // Arredonda para uma casa decimal se for maior ou igual a 0
+                calculoFisrtDiagonalLine = calculoFisrtDiagonalLine.toFixed(2);
+            }
+            Y_valuesFisrtDiagonalLine.push(calculoFisrtDiagonalLine);
+        }
+
+        // Invertendo os valores de Y_valuesFisrtDiagonalLine
+        var Y_valuesFisrtDiagonalLine_invertidos = Y_valuesFisrtDiagonalLine.slice().reverse();
+
+
+        ctx.beginPath();
+        var startPoint1 = convertToPixel(numsRegiosFirstLine[21], Y_valuesFisrtDiagonalLine[21]);
+        ctx.moveTo(startPoint1.x, startPoint1.y);
+
+        for (var i = 0; i < numsRegiosFirstLine.length; i++) {
+            var pixel = convertToPixel(numsRegiosFirstLine[i], Y_valuesFisrtDiagonalLine_invertidos[i]);
+            ctx.lineTo(pixel.x, pixel.y);
+        }
+        // Define a cor da linha
+        ctx.strokeStyle = "black";
+        ctx.stroke();
+        ctx.closePath();
+
+        //                         SEGUNDA LINHA DIAGONAL 
+
+        for (var i = 0; i < numsRegiosSecondLine.length; i++) {
+            var calculoSecondDiagonalLine = 1 - porcentagemSecondDiagonalLine - Math.sqrt(3) * (numsRegiosSecondLine[i]);
+
+
+            if (calculoSecondDiagonalLine > 1) {
+                calculoSecondDiagonalLine = 1;
+            }
+            else if (calculoSecondDiagonalLine >= 0) {
+                // Arredonda para uma casa decimal se for maior ou igual a 0
+                calculoSecondDiagonalLine = calculoSecondDiagonalLine.toFixed(2);
+            }
+            Y_valuesSecondDiagonalLine.push(calculoSecondDiagonalLine);
+        }
+
+        // Invertendo os valores de Y_valuesSecondDiagonalLine
+        var Y_valuesSecondDiagonalLine_invertidos = Y_valuesSecondDiagonalLine.slice().reverse();
+
+
+        ctx.beginPath();
+        var startPoint1 = convertToPixel(numsRegiosSecondLine[21], Y_valuesSecondDiagonalLine[21]);
+        ctx.moveTo(startPoint1.x, startPoint1.y);
+
+        for (var i = 0; i < numsRegiosSecondLine.length; i++) {
+            var pixel = convertToPixel(numsRegiosSecondLine[i], Y_valuesSecondDiagonalLine_invertidos[i]);
+            ctx.lineTo(pixel.x, pixel.y);
+        }
+        // Define a cor da linha
+        ctx.strokeStyle = "black";
+        ctx.stroke();
+        ctx.closePath();
+
+
+
+        
+    }
+
+    //---------------------------------------------------------------------------------------------------------------------
+
+
+
+}
 
 
 /*===========SUSTAINABLE LINES===========*/
@@ -603,11 +847,7 @@ function mostrarSustainableLine_ESI_K1() {
         ctx.stroke();
         ctx.closePath();
 
-    } else {
-        // Limpa os arrays
-        X_values = [];
-        Y_values = [];
-    }
+    } 
 }
 
 function mostrarSustainableLine_ESI_K2() {
@@ -993,6 +1233,12 @@ function ShowSimmetryLines() {
     requestAnimationFrame(ShowSimmetryLines);
 }
 
+function ShowRegions() {
+    mostrarRegios();
+    requestAnimationFrame(ShowRegions);
+}
+
+
 function ShowSimmergLineN() {
     mostrarSourceLinesN()
     requestAnimationFrame(ShowSimmergLineN);
@@ -1048,8 +1294,14 @@ function ShowSourceLinesMn_Sn() {
 }
 
 
+function ShowHidePoints() {
+    adicionarPontos();
+    requestAnimationFrame(ShowHidePoints);
+}
+
 function ShowLines() {
     ShowSimmetryLines();
+    ShowRegions();
     animate();
     ShowSourceLinesMn_Sn();
     ShowSourceLinesN();
@@ -1073,6 +1325,44 @@ function exportCanvas() {
     var canvas = document.getElementById('ternaryChart');
     var dataURL = canvas.toDataURL(); // Obtém a URL de dados do canvas
 
+    // Cria um novo canvas para a imagem em branco
+    var blankCanvas = document.createElement('canvas');
+    var ctx = blankCanvas.getContext('2d');
+
+    // Define as dimensões do novo canvas igual ao canvas original
+    blankCanvas.width = canvas.width;
+    blankCanvas.height = canvas.height;
+
+    // Desenha a imagem em branco no novo canvas
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, blankCanvas.width, blankCanvas.height);
+
+    // Desenha a imagem recortada do canvas original na frente da imagem em branco
+    var img = new Image();
+    img.onload = function() {
+        ctx.drawImage(img, 0, 0); // Desenha a imagem recortada do canvas original
+        // Exporta o novo canvas contendo ambas as imagens
+        var dataURL = blankCanvas.toDataURL();
+        var downloadLink = document.createElement('a');
+        downloadLink.href = dataURL;
+        downloadLink.download = 'ternaryChart.png'; // Nome do arquivo a ser baixado
+        // Adiciona o link ao corpo do documento e simula um clique
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        // Remove o link temporário do corpo do documento
+        document.body.removeChild(downloadLink);
+    };
+    img.src = dataURL;
+}
+
+
+
+//Função que faz o fundo recortado 
+/*
+function exportCanvas() {
+    var canvas = document.getElementById('ternaryChart');
+    var dataURL = canvas.toDataURL(); // Obtém a URL de dados do canvas
+
     // Cria um link temporário para download
     var downloadLink = document.createElement('a');
     downloadLink.href = dataURL;
@@ -1084,7 +1374,7 @@ function exportCanvas() {
 
     // Remove o link temporário do corpo do documento
     document.body.removeChild(downloadLink);
-}
+}*/
 
 // https://pt.stackoverflow.com/questions/266191/como-transformar-imagem-canvas-em-png
 
@@ -1100,108 +1390,3 @@ FALTA ADICIONAR A FUNÇÃO DE INPORTAR OS DADOS. FAZER POSTERIORMENTE
 
 // Chama a função para desenhar o gráfico ternário
 desenharGraficoTernario();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-
-=========================================================
-
-
-FUNÇÃO PARA DETERMINAR O GRÁFICO EM RNF 
-
-
-=========================================================
-
-
-const rawData = [
-    { R: 1.00E+00, N: 2.00E+00, F: 3.00E+00, label: "point 1" },
-    { R: 4.00E+00, N: 5.00E+00, F: 6.00E+00, label: "point 2" },
-    { R: 1.00E+00, N: 1.00E+00, F: 1.00E+00, label: "point 3" },
-];
-
-const canvas = document.getElementById('ternaryChart');
-const ctx = canvas.getContext('2d');
-
-// Função para desenhar o gráfico ternário
-function desenharGraficoTernario() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    const alturaTriangulo = Math.sqrt(3) * (canvas.width / 2);
-
-    // Define os vértices do triângulo       [Definir alturas do triangulos como for necessário, contudo fazer elas serem resposivas, basta mudas o X e Y abaixo]
-    const vertices = [
-        { x: 0, y: alturaTriangulo },
-        { x: canvas.width, y: alturaTriangulo },
-        { x: canvas.width / 2, y: 0 },
-    ];
-
-
-    // Desenha as linhas do triângulo
-    ctx.beginPath();
-    ctx.moveTo(vertices[0].x, vertices[0].y);
-    ctx.lineTo(vertices[1].x, vertices[1].y);
-    ctx.lineTo(vertices[2].x, vertices[2].y);
-    ctx.closePath();
-    ctx.stroke();
-
-    // Desenha os pontos no gráfico ternário
-    rawData.forEach((point) => {
-        // Normaliza os dados para a escala do gráfico ternário (0 a 1)
-        const normalizedPoint = {
-            A: point.R / (point.R + point.N + point.F),
-            B: point.N / (point.R + point.N + point.F),
-            C: point.F / (point.R + point.N + point.F),
-        };
-
-        const x = normalizedPoint.A * vertices[0].x + normalizedPoint.B * vertices[1].x + normalizedPoint.C * vertices[2].x;
-        const y = normalizedPoint.A * vertices[0].y + normalizedPoint.B * vertices[1].y + normalizedPoint.C * vertices[2].y;
-
-        // Desenha os pontos
-        ctx.beginPath();
-        ctx.arc(x, y, 5, 0, 2 * Math.PI);
-        ctx.fill();
-
-        // Adiciona um evento de mouseover para exibir o rótulo quando o mouse passar sobre o ponto
-        canvas.addEventListener('mousemove', (event) => {
-            const mouseX = event.clientX - canvas.getBoundingClientRect().left;
-            const mouseY = event.clientY - canvas.getBoundingClientRect().top;
-
-            if (mouseX > x - 10 && mouseX < x + 10 && mouseY > y - 10 && mouseY < y + 10) {
-                exibirRotulo(point.label, x, y);
-            }
-        });
-    });
-}
-
-// Função auxiliar para exibir o rótulo
-function exibirRotulo(label, x, y) {
-    ctx.fillStyle = 'black';
-    ctx.fillText(label, x + 10, y - 10);
-}
-
-// Chama a função para desenhar o gráfico ternário
-desenharGraficoTernario();
-
-*/

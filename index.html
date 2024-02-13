@@ -5,8 +5,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gráfico Ternário</title>
+  
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
     integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    
   <link rel="stylesheet" href="css/style.css" />
   <style>
 
@@ -25,25 +27,30 @@
       <div class="col-lg-3">
         <!-- Div com quadrado atrás -->
         <div class="p-4 mb-3 bg-secondary border rounded shadow" style="height: 99%;">
-            <!-- Conteúdo da div -->
-            <h3>Nome do Usuário</h3>
-            <ul class="list-unstyled">
-                <li class="mb-3"><button id="bt_dataInput" class="btn btn-outline-light" onclick="abraDataInput()">Data Input</button></li>
-                <li class="mb-3"><button id="bt_points" class="btn btn-outline-light">Points</button></li>
-                <li class="mb-3"><button id="bt_lines" class="btn btn-outline-light" onclick="abraLines()">Lines</button></li>
-                <li class="mb-3"><button id="bt_apperance" class="btn btn-outline-light">Apperance</button></li>
-                <li class="mb-3"><button id="bt_printAndExport" class="btn btn-outline-light" onclick="exportCanvas()">Print and Export</button></li>
-            </ul>
+          <!-- Conteúdo da div -->
+          <h3>Nome do Usuário</h3>
+          <ul class="list-unstyled">
+            <li class="mb-3"><button id="bt_dataInput" class="btn btn-outline-light" onclick="abraDataInput()">Data Input</button></li>
+            <li class="mb-3"><button id="bt_points" class="btn btn-outline-light" onclick="abraPoints()">Points</button></li>
+            <li class="mb-3"><button id="bt_lines" class="btn btn-outline-light" onclick="abraLines()">Lines</button></li>
+            <li class="mb-3"><button id="bt_apperance" class="btn btn-outline-light">Apperance</button></li>
+            <li class="mb-3"><button id="bt_printAndExport" class="btn btn-outline-light" onclick="exportCanvas()">Print and Export</button></li>
+          </ul>
         </div>
-    </div>
+      </div>
 
       <!-- Coluna para Resumo e Gráfico -->
       <div class="col-lg-9">
         <!-- Coluna para Resumo -->
         <div class="row">
           <div class="col-lg-6">
-            <div class="p-4 mb-3 custom-bg border rounded shadow-sm">
+            <div class="p-4 mb-3 custom-bg border rounded shadow">
               <h4>Resumo</h4>
+              <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam turpis massa, interdum nec nulla molestie, ultrices rutrum nisi. Vestibulum fringilla dolor non malesuada sagittis. In quis quam purus. In hac habitasse platea dictumst. Cras laoreet orci sit amet leo varius, a fringilla ipsum venenatis. Donec lobortis non turpis fringilla condimentum. Maecenas quis velit magna. Vestibulum tellus sapien, facilisis iaculis velit eget, cursus sagittis sem. Vestibulum porttitor dui quis nulla accumsan condimentum. Vivamus justo massa, dignissim et facilisis in, dapibus eu sem. Aenean accumsan orci elit, vel tempor felis sodales non. Sed egestas commodo risus, eget molestie ipsum. Sed luctus non leo a porttitor. Nunc venenatis fermentum elit, et pharetra enim fermentum vel. Phasellus ultrices nunc id ligula efficitur fringilla. Phasellus pellentesque et sem malesuada euismod.
+
+                Suspendisse eu ligula lacus. Duis rhoncus eros ipsum. Vivamus quis posuere velit. Integer quis suscipit urna. Nunc dictum tortor justo, nec elementum lorem consectetur ac. Sed lobortis dapibus mauris, ut sollicitudin tortor tempor nec. Maecenas luctus est nisl, lacinia semper justo interdum sed. Suspendisse eu porta orci. Donec et erat nec lectus tincidunt iaculis dignissim porta ipsum. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin ante urna, auctor a nulla sit amet, mollis varius massa. Donec congue, nisl et tempus elementum, justo purus pellentesque erat.
+              </p>
+                
             </div>
           </div>
           <!-- Coluna para Dados -->
@@ -119,7 +126,7 @@
                     <input type="text" id="inputPorcentageR" disabled>
                     <!--<label for="">%R=(R+Mr+Sr)/Y</label>-->
                   </div>
-                                <!--
+                  <!--
       Dados de porcentagem de cada extremidade do ternário 
     -->
 
@@ -147,7 +154,7 @@
         <div class="row justify-content-center">
           <div class="col-lg-12 ">
             <div class="p-4 mb-3 custom-bg border rounded shadow text-center">
-              <canvas id="ternaryChart" width="550" height="400"></canvas>
+              <canvas id="ternaryChart" width="550" height="550"></canvas>
             </div>
           </div>
         </div>
@@ -194,16 +201,30 @@
 
   <!--ABRE AS INFORMAÇÔES DA OPÇÃO "Points"-->
 
+  <div id="popup-points" class="popup">
+    <button id="fechepoints" class="fechePopup" onclick="fechePoints()">X</button>
+    <h3>Points Selection</h3>
+    <div id="points-container"></div>
+  </div>
+
+
+
+
+
+
+
   <!--ABRE AS INFORMAÇÔES DA OPÇÃO "Lines"-->
   <div id="popup-lines" class="popup">
     <button id="fecheLines" class="fechePopup" onclick="fecheLines()">X</button>
     <h2>Lines</h2>
     <div class="inline">
-      <button onclick="mostrarConteudoLines('sourcesContent')">Sources</button>
-      <button onclick="mostrarConteudoLines('sustainableContent')">Sustainable</button>
-      <button onclick="mostrarConteudoLines('sensibilityContent')">Sensibility</button>
-      <button id="bt_simergy" onclick="togglePontoMedio()">Simergy</button>
-    </div>
+      <button type="button" class="btn btn-primary" onclick="mostrarConteudoLines('sourcesContent'); toggleActiveButton(this)">Sources</button>
+      <button type="button" class="btn btn-primary" onclick="mostrarConteudoLines('sustainableContent'); toggleActiveButton(this)">Sustainable</button>
+      <button type="button" class="btn btn-primary" onclick="mostrarConteudoLines('sensibilityContent'); toggleActiveButton(this)">Sensibility</button>
+      <button type="button" class="btn btn-primary" id="bt_simergy" onclick="togglePontoMedio(); toggleActiveButton(this)">Simergy</button>
+  </div>
+  
+  
     <!--AQUI ESTÃO AS LINHAS DE SOURCES, OUTRAS LINHAS SERÃO REFERENCIADAS ABAIXO-->
     <div id="sourcesContent">
       <h3>Select the desire Source Lines</h3>
@@ -232,27 +253,22 @@
         <label>
           Active Regions
         </label>
-        <div class="inline">
-          <button>OK</button>
-          <button>Apply</button>
-          <button>Cancel</button>
-        </div>
       </div>
     </div>
 
 
     <div id="sustainableContent" class="hidden">
-      <h3>Select the desire Source Lines</h3>
+      <h3>Select the desire Sustainable Lines</h3>
       <input type="checkbox" id="ESI_K1">
       <label>
         ESI = k1
       </label>
-      <input type="number" id="valueESI_K1" class="acrecimo" value="7" min="0"/><br>
+      <input type="number" id="valueESI_K1" class="acrecimo" value="7" min="0" /><br>
       <input type="checkbox" id="ESI_K2">
       <label>
         ESI = k2
       </label>
-      <input type="number" id="valueESI_K2" class="acrecimo" value="2.5" min="0"/><br>
+      <input type="number" id="valueESI_K2" class="acrecimo" value="2.5" min="0" /><br>
       <input type="checkbox" id="ESI_K3">
       <label>
         ESI = k3
@@ -262,31 +278,28 @@
 
     <div id="sensibilityContent" class="hidden">
       <h3>Select the desire point</h3>
-      <input type="checkbox" id="sensibilityR_MR_SR">
-      <label>
-        R+Mr+Sr
-      </label>
-      <select id="valueSelectPointR_MR_SR" onchange="carregarDadosSensibilityR_MR_SR()">
-        <option value="">Selecione...</option>
-      </select><br>
+      <!--<input type="checkbox" id="sensibilityR_MR_SR">-->
+      <div class="form-group">
+        <label for="valueSelectPointR_MR_SR">R+Mr+Sr</label>
+        <select class="form-control" id="valueSelectPointR_MR_SR" onchange="carregarDadosSensibilityR_MR_SR()">
+            <option value="">Selecione...</option>
+        </select>
+    </div>
 
-      </datalist>
-      <input type="checkbox" id="sensibilityN">
-      <label>
-        N
-      </label>
-      <select id="valueSelectPointN" onchange="carregarDados()">
-        <option value="">Selecione...</option>
-      </select><br>
+    <div class="form-group">
+        <label for="valueSelectPointN">N</label>
+        <select class="form-control" id="valueSelectPointN" onchange="carregarDados()">
+            <option value="">Selecione...</option>
+        </select>
+    </div>
 
-      </datalist>
-      <input type="checkbox" id="sensibilityMN_SN">
-      <label>
-        Mn+Sn
-      </label>
-      <select id="valueSelectPointMN_SN" onchange="carregarDados()">
-        <option value="">Selecione...</option>
-      </select><br>
+    <div class="form-group">
+        <label for="valueSelectPointMN_SN">Mn+Sn</label>
+        <select class="form-control" id="valueSelectPointMN_SN" onchange="carregarDados()">
+            <option value="">Selecione...</option>
+        </select>
+    </div>
+</div>
 
       </datalist>
     </div>
