@@ -68,6 +68,51 @@ input {
   display: inline;  
 }
 
+
+/*
+
+    FORMATAÇÃO TABELA
+
+*/
+
+/* Adiciona um espaçamento entre as células da tabela */
+.table th, .table td {
+  padding: 0.75rem;
+}
+
+/* Remove a borda inferior das células do corpo da tabela */
+.table tbody tr td {
+  border-bottom: none;
+}
+
+/* Remove a borda inferior das células do corpo da tabela com scope="row" */
+.table tbody tr [scope="row"] {
+  border-bottom: none;
+}
+
+/*
+
+    PERSONALIZAÇÃO DO SCROLL
+
+*/
+
+.scrollResume {
+    overflow: hidden;
+    overflow-y: scroll;
+    overflow-x: scroll;
+}
+
+.scrollResume::-webkit-scrollbar{
+  width: 10px;
+  background-color: #9bacb2;
+  border-radius: 10px;
+}
+
+.scrollResume::-webkit-scrollbar-thumb{
+  background-color: #6c757d;
+  border-radius: 10px;
+}
+
 /*
 
     PERSONALIZAÇÃO DO BOOTSTRAP
@@ -77,4 +122,5 @@ input {
 .custom-bg {
   background-color: rgba(255, 255, 255, 0.8); /* Cor branca com 80% de opacidade */
 }
+
 

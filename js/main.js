@@ -52,6 +52,13 @@ const canvas = document.getElementById('ternaryChart');
 const ctx = canvas.getContext('2d');
 ctx.globalAlpha = 1;
 
+let checkRenovabilidadeParcial_Ativado = true; // Defina como true por padrão
+
+const checkRenovabilidadeParcial = document.getElementById('flexSwitchCheckChecked');
+checkRenovabilidadeParcial.addEventListener('change', () => {
+    checkRenovabilidadeParcial_Ativado = checkRenovabilidadeParcial.checked;
+    desenharGraficoTernario(); // Redesenha o gráfico quando o checkbox é alterado
+});
 
 
 // Função para converter coordenadas para pixels no canvas
@@ -103,13 +110,45 @@ function desenharGraficoTernario() {
     ctx.font = "18px Arial";
 
     // Label para cada extremidade do triângulo 
-    ctx.fillText("R+Mr+Sr", startPoint.x, startPoint.y - labelOffset);
-    ctx.fillText("N", apex1.x, apex1.y + labelOffset);
-    ctx.fillText("Mn+Sn", apex2.x, apex2.y + labelOffset);
 
+    if (checkRenovabilidadeParcial_Ativado) {
+        ctx.fillText("R+Mr+Sr", startPoint.x, startPoint.y - labelOffset);
+        ctx.fillText("N", apex1.x, apex1.y + labelOffset);
+        ctx.fillText("Mn+Sn", apex2.x, apex2.y + labelOffset);
+    } else {
+        ctx.fillText("R", startPoint.x, startPoint.y - labelOffset);
+        ctx.fillText("N", apex1.x, apex1.y + labelOffset);
+        ctx.fillText("F", apex2.x, apex2.y + labelOffset);
+    }
+    
+    // Função para converter HSL para RGB
+    function hslToRgb(h, s, l) {
+        var r, g, b;
+
+        if (s == 0) {
+            r = g = b = l; // A escala de cinza, sem saturação
+        } else {
+            function hue2rgb(p, q, t) {
+                if (t < 0) t += 1;
+                if (t > 1) t -= 1;
+                if (t < 1 / 6) return p + (q - p) * 6 * t;
+                if (t < 1 / 2) return q;
+                if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+                return p;
+            }
+
+            var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+            var p = 2 * l - q;
+            r = hue2rgb(p, q, h + 1 / 3);
+            g = hue2rgb(p, q, h);
+            b = hue2rgb(p, q, h - 1 / 3);
+        }
+
+        return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+    }
 
     // Desenha os pontos no gráfico ternário
-    rawData.forEach((point) => {
+    rawData.forEach((point, index) => {
         // Normaliza os dados para a escala do gráfico ternário (0 a 1)
         const normalizedPoint = {
             A: point.R / (point.R + point.N + point.Mr + point.Sr + point.Mn + point.Sn),
@@ -131,6 +170,10 @@ function desenharGraficoTernario() {
             Q: point.PorcentageRR = (point.R + point.Mr + point.Sr) / point.Y,
             R: point.porcentageN = (point.N) / point.Y,
             S: point.porcentageF = (point.Mn + point.Sn) / point.Y,
+            T: point.porcentageMr = (point.Mr) / point.Y,
+            U: point.porcentageSr = (point.Sr) / point.Y,
+            V: point.porcentageMn = (point.Mn) / point.Y,
+            W: point.porcentageSn = (point.Sn) / point.Y,
         };
 
         // Normaliza os valores  
@@ -139,9 +182,16 @@ function desenharGraficoTernario() {
 
         var pixel = convertToPixel(x, y);
 
+        // Define uma cor baseada no índice do ponto
+        var hue = (index * 137.508) % 360; // Use um número primo para garantir variação
+        var [r, g, b] = hslToRgb(hue / 360, 0.5, 0.5);
+
+        
+
         // Desenha os pontos
         ctx.beginPath();
         ctx.arc(pixel.x, pixel.y, 5, 0, 2 * Math.PI);
+        ctx.fillStyle = `rgba(${r}, ${g}, ${b})`;
         ctx.fill();
      
         // Adiciona um rótulo numerado
@@ -149,6 +199,28 @@ function desenharGraficoTernario() {
         ctx.font = "14px Arial";
         if (point.label === "Simergy") {
             ctx.fillText("Simergy", pixel.x + 10, pixel.y + 6);
+
+            ctx.beginPath();
+            ctx.arc(pixel.x, pixel.y, 5, 0, 2 * Math.PI);
+            ctx.fillStyle = "black";
+            ctx.fill();
+            ctx.closePath();
+
+            ctx.beginPath();
+            ctx.moveTo(pixel.x - 3, pixel.y - 3);
+            ctx.lineTo(pixel.x + 3, pixel.y + 3);
+            ctx.strokeStyle = "white";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.closePath();
+
+            ctx.beginPath();
+            ctx.moveTo(pixel.x + 3, pixel.y - 3);
+            ctx.lineTo(pixel.x - 3, pixel.y + 3);
+            ctx.strokeStyle = "white";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.closePath();
         } else {
             ctx.fillText(counter, pixel.x + 10, pixel.y + 6);
         }
@@ -169,7 +241,143 @@ function desenharGraficoTernario() {
 
 }
 
+/*
 
+    CRIAR RESUMO 
+
+*/
+
+function criarTabela(rawData) {
+    const table = document.createElement('table');
+    table.classList.add('table');
+
+    // Header
+    const thead = document.createElement('thead');
+    const headerRow = document.createElement('tr');
+    const headers = [
+        'Point',
+        'Name',
+        'Origin of input Source',
+        'Emergy in sej/Unit',
+        'Emergy in sej/sej or %',
+        '',
+        'Emergy indices with partial renewabilities'
+    ];
+    headers.forEach(headerText => {
+        const th = document.createElement('th');
+        th.setAttribute('scope', 'col');
+        th.textContent = headerText;
+        headerRow.appendChild(th);
+    });
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+
+    const tbody = document.createElement('tbody');
+    
+    
+    const emptyColumnData = [
+        'EYR=Y/(Mn+Sn)',
+        'EIR=(Mr+Mn+Sr+Sn)/(R+N)',
+        'ELR=(N+Mn+Sn)/(R+Mr+Sr)',
+        'ESI=EYR/ELR',
+        '%R=(R+Mr+Sr)/Y'
+    ];
+    
+    // Repetir para cada ponto fornecido
+    rawData.forEach((data, index) => {
+        for (let i = 0; i < 8; i++) { 
+            const row = document.createElement('tr');
+            let emergyData;
+            let percentageData;
+            let emergyIndices;
+
+            const totalY = data.R + data.N + data.Mr + data.Mn + data.Sr + data.Sn;
+            percentageData = [
+                ((data.R) / totalY * 100).toFixed(2) + '%',
+                ((data.N) / totalY * 100).toFixed(2) + '%',
+                ((data.Mr) / totalY * 100).toFixed(2) + '%',
+                ((data.Mn) / totalY * 100).toFixed(2) + '%',
+                ((data.Sr) / totalY * 100).toFixed(2) + '%',
+                ((data.Sn) / totalY * 100).toFixed(2) + '%',
+                ((data.Mr + data.Mn + data.Sr + data.Sn) / totalY * 100).toFixed(2) + '%',
+                ((data.R + data.N + data.Mr + data.Mn + data.Sr + data.Sn) / totalY * 100).toFixed(2) + '%',
+            ];
+            emergyData = [
+                data.R.toExponential(2),
+                data.N.toExponential(2),
+                data.Mr.toExponential(2),
+                data.Mn.toExponential(2),
+                data.Sr.toExponential(2),
+                data.Sn.toExponential(2),
+                (data.Mr + data.Sr + data.Mn + data.Sn).toExponential(2),
+                (data.R + data.Mr + data.Sr + data.N + data.Mn + data.Sn).toExponential(2)
+            ];
+
+            // Calcular os valores para Emergy indices with partial renewabilities
+            const MnSn = data.Mn + data.Sn;
+            const RN = data.R + data.N;
+            const RMrSrSn = data.R + data.Mr + data.Sr + data.Sn;
+
+            emergyIndices = [
+                (data.Y / MnSn).toFixed(2),
+                ((data.Mr + data.Mn + data.Sr + data.Sn) / RN).toFixed(2),
+                ((data.N + data.Mn + data.Sn) / (data.R + data.Mr + data.Sr)).toFixed(2),
+                ((data.Y / MnSn) / ((data.N + data.Mn + data.Sn) / (data.R + data.Mr + data.Sr))).toFixed(2),
+                ((data.R + data.Mr + data.Sr) / totalY).toFixed(2),
+                '',
+                '',
+                '',
+            ];
+
+            const rowData = [
+                index + 1, // Número do ponto
+                data.label, // Nome do ponto
+                i < 8 ? ['R', 'N', 'Mr', 'Mn', 'Sr', 'Sn', 'F=Mr+Sr+Mn+Sn', 'Total emergy (Y)'][i] : '', // Origem da fonte de entrada
+                emergyData[i], // Emergy in sej/Unit
+                percentageData[i], // Emergy in sej/sej or %
+                i < emptyColumnData.length ? emptyColumnData[i] : '', // Conteúdo da coluna vazia
+                emergyIndices[i], // Emergy indices with partial renewabilities
+            ];
+            rowData.forEach(cellData => {
+                const cell = document.createElement('td');
+                cell.textContent = cellData;
+                row.appendChild(cell);
+            });
+            tbody.appendChild(row);
+        }
+
+        // Adiciona as linhas vazias ao final do loop
+        for (let i = 0; i < 2; i++) {
+            const emptyRow = document.createElement('tr');
+            for (let j = 0; j < headers.length; j++) {
+                const emptyTh = document.createElement('th');
+                const emptyTd = document.createElement('td');
+                emptyRow.appendChild(emptyTh);
+                emptyRow.appendChild(emptyTd);
+            }
+            tbody.appendChild(emptyRow);
+        }
+    
+    });
+
+    
+    // Adiciona o corpo à tabela
+    table.appendChild(tbody);
+
+    return table;
+}
+
+
+
+
+
+
+
+
+
+const tabela = criarTabela(rawData);
+// Adiciona a tabela ao elemento desejado do DOM
+document.getElementById('resume').appendChild(tabela);
 
 
 
@@ -242,7 +450,7 @@ function adicionarPontos() {
         checkbox.addEventListener('change', function() {
             if (checkbox.checked) {
                 // Se estiver marcada, desenhar o ponto no gráfico
-                desenharPontoNoGrafico(point);
+                exibirPontoNoGrafico(point);
             } else {
                 // Se não estiver marcada, ocultar o ponto do gráfico
                 ocultarPontoNoGrafico(point);
@@ -262,37 +470,52 @@ function adicionarPontos() {
     });
 }
 
-// Função para desenhar um ponto no gráfico
-function desenharPontoNoGrafico(point) {
-    // Normalizar os dados do ponto
-    const normalizedPoint = {
-        x: (2 * point.F + point.H - 1) / Math.sqrt(3),
-        y: point.H
-    };
+// Função para exibir um ponto no gráfico
+function exibirPontoNoGrafico(point) {
+    // Verifica se o ponto está oculto
+    if (!point.hidden) {
+        return; // Se não estiver oculto, não faz nada
+    }
 
-    // Converter coordenadas normalizadas para pixels no canvas
-    const pixel = convertToPixel(normalizedPoint.x, normalizedPoint.y);
+    // Restaura os valores originais do ponto
+    // Você precisa ter acesso aos valores originais dos pontos para isso funcionar
+    // Se os valores originais não estiverem disponíveis, você precisa armazená-los em algum lugar antes de ocultar o ponto
+    // Por exemplo, você pode criar uma cópia profunda dos dados brutos e trabalhar com essa cópia
+    // Aqui, presumimos que os valores originais estão disponíveis em point.originalData
+    point.R = point.originalData.R;
+    point.Mr = point.originalData.Mr;
+    point.Sr = point.originalData.Sr;
+    point.N = point.originalData.N;
+    point.Mn = point.originalData.Mn;
+    point.Sn = point.originalData.Sn;
 
-    // Desenhar o ponto no canvas
-    ctx.beginPath();
-    ctx.arc(pixel.x, pixel.y, 5, 0, 2 * Math.PI);
-    ctx.fill();
-    
+    // Remove a propriedade 'hidden' do ponto para indicar que ele não está mais oculto
+    delete point.hidden;
+
+    // Redesenha o gráfico ternário
+    desenharGraficoTernario();
 }
 
 // Função para ocultar um ponto do gráfico
 function ocultarPontoNoGrafico(point) {
-    // Normalizar os dados do ponto
-    const normalizedPoint = {
-        x: (2 * point.F + point.H - 1) / Math.sqrt(3),
-        y: point.H
-    };
+    // Verifica se o ponto já está oculto
+    if (point.hidden) {
+        return; // Se já estiver oculto, não faz nada
+    }
 
-    // Converter coordenadas normalizadas para pixels no canvas
-    const pixel = convertToPixel(normalizedPoint.x, normalizedPoint.y);
+    // Zera os valores relevantes do ponto
+    point.R = 0;
+    point.Mr = 0;
+    point.Sr = 0;
+    point.N = 0;
+    point.Mn = 0;
+    point.Sn = 0;
 
-    // Limpar a área do ponto no canvas
-    ctx.clearRect(pixel.x - 5, pixel.y - 5, 10, 10);
+    // Define uma propriedade 'hidden' no ponto para indicar que ele está oculto
+    point.hidden = true;
+
+    // Redesenha o gráfico ternário
+    desenharGraficoTernario();
 }
 
 // Chamada da função para adicionar os pontos ao carregar a página
@@ -669,7 +892,14 @@ function mostrarRegios() {
 
     //======================== THIRD SET OF LINES (SUSTAINABLE)  ===================================
 
-    
+    primeiro_calculoRegionsFirstLine = (2 * 5 + 1 - Math.sqrt(4 * 5 + 1)) / (5 * 2) //Ultimo valor de Y
+
+    segundo_calculoRegionsFirstLine = primeiro_calculoRegionsFirstLine / 18
+
+    primeiro_calculoRegionsSecondLine = (2 * 5 + 1 - Math.sqrt(4 * 5 + 1)) / (5 * 2) //Ultimo valor de Y
+
+    segundo_calculoRegionsSecondLine = primeiro_calculoRegionsSecondLine / 18
+
     
 
     if (activeRegios_Visivel) {
@@ -717,8 +947,9 @@ function mostrarRegios() {
         ctx.beginPath();
         var startPoint1 = convertToPixel(numsRegiosFirstLine[21], Y_valuesFisrtDiagonalLine[21]);
         ctx.moveTo(startPoint1.x, startPoint1.y);
+        
 
-        for (var i = 0; i < numsRegiosFirstLine.length; i++) {
+        for (var i = numsRegiosFirstLine.length - 1; i >= numsRegiosFirstLine.length - 11; i--) {
             var pixel = convertToPixel(numsRegiosFirstLine[i], Y_valuesFisrtDiagonalLine_invertidos[i]);
             ctx.lineTo(pixel.x, pixel.y);
         }
@@ -751,7 +982,7 @@ function mostrarRegios() {
         var startPoint1 = convertToPixel(numsRegiosSecondLine[21], Y_valuesSecondDiagonalLine[21]);
         ctx.moveTo(startPoint1.x, startPoint1.y);
 
-        for (var i = 0; i < numsRegiosSecondLine.length; i++) {
+        for (var i = 0; i < 9; i++) {
             var pixel = convertToPixel(numsRegiosSecondLine[i], Y_valuesSecondDiagonalLine_invertidos[i]);
             ctx.lineTo(pixel.x, pixel.y);
         }
@@ -760,14 +991,93 @@ function mostrarRegios() {
         ctx.stroke();
         ctx.closePath();
 
-
-
-        
-    }
-
     //---------------------------------------------------------------------------------------------------------------------
 
+        var X_valuesFirstLine = [];
+        var Y_valuesFirstLine = [];
 
+        Y_valuesFirstLine.push(0);
+
+        // Primeiro calculo = (2*input + 1 - Math.sqrt(4*input + 1))/(input * 2)
+        var primeiro_calculoRegionsFirstLine = (2 * 5 + 1 - Math.sqrt(4 * 5 + 1)) / (5 * 2);
+
+        // Segundo calculoRegionsFirstLine = Primeiro calculoRegionsFirstLine / 18
+        var segundo_calculoRegionsFirstLine = primeiro_calculoRegionsFirstLine / 18;
+
+        // Terceiro CalculoRegionsFirstLine = Segundo CalculoRegionsFirstLine * 1... 2... 3... 17
+        for (var i = 1; i <= 17; i++) {
+            Y_valuesFirstLine.push(segundo_calculoRegionsFirstLine * i);
+        }
+
+        Y_valuesFirstLine.push(primeiro_calculoRegionsFirstLine);
+
+        // Quarto CalculoRegionsFirstLine = (1/Math.sqrt(3)) * (((2*Yrespectivo)/(input*(1-Yrespectivo))) + Yrespectivo - 1);
+        for (var j = 0; j <= 19; j++) {
+            var quarto_calculoRegionsFirstLine = (1 / Math.sqrt(3)) * (((2 * Y_valuesFirstLine[j]) / (5 * (1 - Y_valuesFirstLine[j]))) + Y_valuesFirstLine[j] - 1);
+            X_valuesFirstLine.push(quarto_calculoRegionsFirstLine);
+        }
+
+
+        // Desenha a linha 
+        ctx.beginPath();
+        // Move para o primeiro ponto
+        var startPoint = convertToPixel(X_valuesFirstLine[0], Y_valuesFirstLine[0]);
+        ctx.moveTo(startPoint.x, startPoint.y);
+
+        // Desenha a linha entre os pontos restantes
+        for (var j = 0; j <= 19; j++) {
+            var pixel = convertToPixel(X_valuesFirstLine[j], Y_valuesFirstLine[j]);
+            ctx.lineTo(pixel.x, pixel.y);
+
+
+        }
+        // Define a cor da linha
+        ctx.strokeStyle = "Black";
+        ctx.stroke();
+        ctx.closePath();
+
+        var X_valuesSecondLine = [];
+        var Y_valuesSecondLine = [];
+
+        Y_valuesSecondLine.push(0);
+
+        // Primeiro calculo = (2*input + 1 - Math.sqrt(4*input + 1))/(input * 2)
+        var primeiro_calculoRegionsSecondLine = (2 * 1 + 1 - Math.sqrt(4 * 1 + 1)) / (1 * 2);
+
+        // Segundo calculoRegionsSecondLine = Primeiro calculoRegionsSecondLine / 18
+        var segundo_calculoRegionsSecondLine = primeiro_calculoRegionsSecondLine / 18;
+
+        // Terceiro CalculoRegionsSecondLine = Segundo CalculoRegionsSecondLine * 1... 2... 3... 17
+        for (var i = 1; i <= 17; i++) {
+            Y_valuesSecondLine.push(segundo_calculoRegionsSecondLine * i);
+        }
+
+        Y_valuesSecondLine.push(primeiro_calculoRegionsSecondLine);
+
+        // Quarto CalculoRegionsSecondLine = (1/Math.sqrt(3)) * (((2*Yrespectivo)/(input*(1-Yrespectivo))) + Yrespectivo - 1);
+        for (var j = 0; j <= 19; j++) {
+            var quarto_calculoRegionsSecondLine = (1 / Math.sqrt(3)) * (((2 * Y_valuesSecondLine[j]) / (1 * (1 - Y_valuesSecondLine[j]))) + Y_valuesSecondLine[j] - 1);
+            X_valuesSecondLine.push(quarto_calculoRegionsSecondLine);
+        }
+
+        // Desenha a linha 
+        ctx.beginPath();
+        // Move para o primeiro ponto
+        var startPoint = convertToPixel(X_valuesSecondLine[0], Y_valuesSecondLine[0]);
+        ctx.moveTo(startPoint.x, startPoint.y);
+
+        // Desenha a linha entre os pontos restantes
+        for (var j = 0; j <= 19; j++) {
+            var pixel = convertToPixel(X_valuesSecondLine[j], Y_valuesSecondLine[j]);
+            ctx.lineTo(pixel.x, pixel.y);
+
+        }
+        // Define a cor da linha
+        ctx.strokeStyle = "Black";
+        ctx.stroke();
+        ctx.closePath();
+  
+    }
 
 }
 
@@ -1193,26 +1503,222 @@ function calcularPontoMedio(data) {
     };
 }
 
-
 function togglePontoMedio() {
     pontoMedioAtivo = !pontoMedioAtivo;
 
     if (pontoMedioAtivo) {
         pontoMedioData = calcularPontoMedio(rawData);
         rawData.push(pontoMedioData);
+        const pontoSimergia = calcularPontoMedio(rawData); // Calcula o ponto de simergia
+        const simergiaPixel = convertToPixel(0, 0); // Converte as coordenadas do ponto de simergia para pixels
+        
+        rawData.forEach(ponto => {
+            const pontoNormalizado = {
+                A: ponto.R / pontoSimergia.R,
+                B: ponto.Mr / pontoSimergia.Mr,
+                C: ponto.Sr / pontoSimergia.Sr,
+                D: ponto.N / pontoSimergia.N,
+                E: ponto.Mn / pontoSimergia.Mn,
+                F: ponto.Sn / pontoSimergia.Sn,
+            };
+            const x = (2 * pontoNormalizado.J + pontoNormalizado.H - 1) / Math.sqrt(3); // Calcula a coordenada x
+            const y = pontoNormalizado.H; // Usa a coordenada H diretamente
+
+            const startPoint = convertToPixel(x, y); // Converte as coordenadas para pixels
+
+            // Desenha uma linha do ponto de simergia para o ponto no gráfico ternário
+            ctx.beginPath();
+            ctx.moveTo(simergiaPixel.x, simergiaPixel.y);
+            ctx.lineTo(startPoint.x, startPoint.y);
+            ctx.strokeStyle = 'red'; // Cor da linha (você pode ajustar conforme necessário)
+            ctx.lineWidth = 1; // Largura da linha (você pode ajustar conforme necessário)
+            ctx.stroke();
+            ctx.closePath();
+        });
 
     } else {
         rawData.pop();
         pontoMedioData = null;
-        desenharGraficoTernario();
-    }
-
-    if (pontoMedioAtivo) {
-        desenharGraficoTernario();
-
     }
 }
 
+
+/*
+
+
+            APPERANCE 
+
+
+*/
+
+let apperencePopUp = document.getElementById('popup-apperance')
+
+function abraApperance() {
+    apperencePopUp.classList.add("open-popup");
+}
+
+
+function fecheApperance() {
+    apperencePopUp.classList.remove("open-popup");
+}
+
+
+/*
+
+        PRINT AND EXPORT 
+
+*/
+
+
+let printAndExportPopUp = document.getElementById('popup-PrintAndExport')
+
+function abraPrintAndExport() {
+    printAndExportPopUp.classList.add("open-popup");
+}
+
+
+function fechePrintAndExport() {
+    printAndExportPopUp.classList.remove("open-popup");
+}
+
+
+function exportCanvasPNG() {
+    var canvas = document.getElementById('ternaryChart');
+    var dataURL = canvas.toDataURL(); // Obtém a URL de dados do canvas
+
+    // Cria um novo canvas para a imagem em branco
+    var blankCanvas = document.createElement('canvas');
+    var ctx = blankCanvas.getContext('2d');
+
+    // Define as dimensões do novo canvas igual ao canvas original
+    blankCanvas.width = canvas.width;
+    blankCanvas.height = canvas.height;
+
+    // Desenha a imagem em branco no novo canvas
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, blankCanvas.width, blankCanvas.height);
+
+    // Desenha a imagem recortada do canvas original na frente da imagem em branco
+    var img = new Image();
+    img.onload = function() {
+        ctx.drawImage(img, 0, 0); // Desenha a imagem recortada do canvas original
+        // Exporta o novo canvas contendo ambas as imagens
+        var dataURL = blankCanvas.toDataURL();
+        var downloadLink = document.createElement('a');
+        downloadLink.href = dataURL;
+        downloadLink.download = 'ternaryChart.png'; // Nome do arquivo a ser baixado
+        // Adiciona o link ao corpo do documento e simula um clique
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        // Remove o link temporário do corpo do documento
+        document.body.removeChild(downloadLink);
+    };
+    img.src = dataURL;
+}
+
+// Exportar Diagrama como PDF
+
+// Função para exportar o canvas para PDF
+function exportCanvasPDF() {
+    var canvas = document.getElementById('ternaryChart');
+    var dataURL = canvas.toDataURL(); // Obtém a URL de dados do canvas
+   
+
+    // Cria um novo objeto jsPDF
+    var pdf = new jsPDF();
+
+    // Adiciona a imagem do canvas ao PDF centralizada
+    pdf.addImage(dataURL, 'PNG', 15, 40, 180, 180);
+
+    // Salva o PDF com o nome desejado
+    pdf.save('ternaryChart.pdf');
+}
+
+function exportTableInPDF() {
+    const doc = new jsPDF();
+
+    // Dados da tabela
+    const data = [
+    ["Nome", "Idade", "Cidade"],
+    ["João", 30, "São Paulo"],
+    ["Maria", 25, "Rio de Janeiro"],
+    ["Pedro", 35, "Belo Horizonte"]
+    ];
+
+    // Criando a tabela
+    doc.autoTable({
+    head: [data[0]],
+    body: data.slice(1)
+    });
+
+    doc.save("tabela.pdf");
+}
+
+//Função que faz o fundo recortado 
+
+function exportCanvasCroppedBackground() {
+    var canvas = document.getElementById('ternaryChart');
+    var dataURL = canvas.toDataURL(); // Obtém a URL de dados do canvas
+
+    // Cria um link temporário para download
+    var downloadLink = document.createElement('a');
+    downloadLink.href = dataURL;
+    downloadLink.download = 'ternaryChart.png'; // Nome do arquivo a ser baixado
+
+    // Adiciona o link ao corpo do documento e simula um clique
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+
+    // Remove o link temporário do corpo do documento
+    document.body.removeChild(downloadLink);
+}
+
+/*
+
+ATUALIZAÇÕES NO FRONT CASO OPTE POR IR SEM RENOVABILIDADE PARCIAL
+
+*/
+
+const divLabelsInputs = document.getElementById('divLabelsInputs');
+const switchRenovabilidadeParcial = document.getElementById('flexSwitchCheckChecked');
+
+switchRenovabilidadeParcial.addEventListener('change', () => {
+    if (switchRenovabilidadeParcial.checked) {
+        // Se o switch estiver ativado, exiba todos os labels e inputs
+        divLabelsInputs.innerHTML = `
+        <label for="Name">Name: </label>
+        <input type="text" class="form-control" id="dataInput_Name">
+        <label for="R">R: </label>
+        <input type="number" class="form-control" id="dataInput_R">
+        <label for="Mr">Mr: </label>
+        <input type="number" class="form-control" id="dataInput_Mr">
+        <label for="Sr">Sr: </label>
+        <input type="number" class="form-control" id="dataInput_Sr">
+        <label for="N">N: </label>
+        <input type="number" class="form-control" id="dataInput_N">
+        <label for="Mn">Mn: </label>
+        <input type="number" class="form-control" id="dataInput_Mn">
+        <label for="Sn">Sn: </label>
+        <input type="number" class="form-control" id="dataInput_Sn">
+  
+        <button class="btn btn-primary" onclick="enviarDados()">Enviar</button>
+        `;
+    } else {
+        // Se o switch estiver desativado, exiba apenas R:, N:, F:
+        divLabelsInputs.innerHTML = `
+        <label for="Name">Name: </label>
+        <input type="text" class="form-control" id="dataInput_Name">
+        <label for="R">R: </label>
+        <input type="number" class="form-control" id="dataInput_R">
+        <label for="N">N: </label>
+        <input type="number" class="form-control" id="dataInput_N">
+        <label for="F">F: </label>
+        <input type="number" class="form-control" id="dataInput_F">
+
+        <button class="btn btn-primary" onclick="enviarDados()">Enviar</button>
+        `;
+    }
+});
 
 
 /*
@@ -1299,6 +1805,8 @@ function ShowHidePoints() {
     requestAnimationFrame(ShowHidePoints);
 }
 
+
+
 function ShowLines() {
     ShowSimmetryLines();
     ShowRegions();
@@ -1313,80 +1821,20 @@ function ShowLines() {
     ShowSustainableLine_ESI_K1();
     ShowSustainableLine_ESI_K2();
     ShowSustainableLine_ESI_K3();
+    ShowPontoMedio()
 
 }
 
 ShowLines()
 
+desenharGraficoTernario();
 
-/*===========PRINT AND EXPORT===========*/
-
-function exportCanvas() {
-    var canvas = document.getElementById('ternaryChart');
-    var dataURL = canvas.toDataURL(); // Obtém a URL de dados do canvas
-
-    // Cria um novo canvas para a imagem em branco
-    var blankCanvas = document.createElement('canvas');
-    var ctx = blankCanvas.getContext('2d');
-
-    // Define as dimensões do novo canvas igual ao canvas original
-    blankCanvas.width = canvas.width;
-    blankCanvas.height = canvas.height;
-
-    // Desenha a imagem em branco no novo canvas
-    ctx.fillStyle = 'white';
-    ctx.fillRect(0, 0, blankCanvas.width, blankCanvas.height);
-
-    // Desenha a imagem recortada do canvas original na frente da imagem em branco
-    var img = new Image();
-    img.onload = function() {
-        ctx.drawImage(img, 0, 0); // Desenha a imagem recortada do canvas original
-        // Exporta o novo canvas contendo ambas as imagens
-        var dataURL = blankCanvas.toDataURL();
-        var downloadLink = document.createElement('a');
-        downloadLink.href = dataURL;
-        downloadLink.download = 'ternaryChart.png'; // Nome do arquivo a ser baixado
-        // Adiciona o link ao corpo do documento e simula um clique
-        document.body.appendChild(downloadLink);
-        downloadLink.click();
-        // Remove o link temporário do corpo do documento
-        document.body.removeChild(downloadLink);
-    };
-    img.src = dataURL;
-}
-
-
-
-//Função que faz o fundo recortado 
-/*
-function exportCanvas() {
-    var canvas = document.getElementById('ternaryChart');
-    var dataURL = canvas.toDataURL(); // Obtém a URL de dados do canvas
-
-    // Cria um link temporário para download
-    var downloadLink = document.createElement('a');
-    downloadLink.href = dataURL;
-    downloadLink.download = 'ternaryChart.png'; // Nome do arquivo a ser baixado
-
-    // Adiciona o link ao corpo do documento e simula um clique
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-
-    // Remove o link temporário do corpo do documento
-    document.body.removeChild(downloadLink);
-}*/
 
 // https://pt.stackoverflow.com/questions/266191/como-transformar-imagem-canvas-em-png
 
 
 
 
-/*
-====================================================================
-FALTA ADICIONAR A FUNÇÃO DE INPORTAR OS DADOS. FAZER POSTERIORMENTE
-====================================================================
-*/
 
 
-// Chama a função para desenhar o gráfico ternário
-desenharGraficoTernario();
+

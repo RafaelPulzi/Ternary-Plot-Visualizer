@@ -6,13 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gráfico Ternário</title>
   
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
-    integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
-    
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">  
   <link rel="stylesheet" href="css/style.css" />
-  <style>
 
-  </style>
 </head>
 
 <header>
@@ -33,9 +29,13 @@
             <li class="mb-3"><button id="bt_dataInput" class="btn btn-outline-light" onclick="abraDataInput()">Data Input</button></li>
             <li class="mb-3"><button id="bt_points" class="btn btn-outline-light" onclick="abraPoints()">Points</button></li>
             <li class="mb-3"><button id="bt_lines" class="btn btn-outline-light" onclick="abraLines()">Lines</button></li>
-            <li class="mb-3"><button id="bt_apperance" class="btn btn-outline-light">Apperance</button></li>
-            <li class="mb-3"><button id="bt_printAndExport" class="btn btn-outline-light" onclick="exportCanvas()">Print and Export</button></li>
+            <li class="mb-3"><button id="bt_apperance" class="btn btn-outline-light" onclick="abraApperance()">Apperance</button></li>
+            <li class="mb-3"><button id="bt_printAndExport" class="btn btn-outline-light"  onclick="abraPrintAndExport()">Print and Export</button></li>
           </ul>
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckChecked" checked>>
+            <label class="form-check-label" for="flexSwitchCheckChecked">Renovabilidade Parcial</label>
+          </div>
         </div>
       </div>
 
@@ -43,14 +43,12 @@
       <div class="col-lg-9">
         <!-- Coluna para Resumo -->
         <div class="row">
-          <div class="col-lg-6">
-            <div class="p-4 mb-3 custom-bg border rounded shadow">
+          <div class="col-lg-6 d-flex align-items-stretch">
+            <div class="p-4 mb-3 custom-bg border rounded shadow" >
               <h4>Resumo</h4>
-              <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam turpis massa, interdum nec nulla molestie, ultrices rutrum nisi. Vestibulum fringilla dolor non malesuada sagittis. In quis quam purus. In hac habitasse platea dictumst. Cras laoreet orci sit amet leo varius, a fringilla ipsum venenatis. Donec lobortis non turpis fringilla condimentum. Maecenas quis velit magna. Vestibulum tellus sapien, facilisis iaculis velit eget, cursus sagittis sem. Vestibulum porttitor dui quis nulla accumsan condimentum. Vivamus justo massa, dignissim et facilisis in, dapibus eu sem. Aenean accumsan orci elit, vel tempor felis sodales non. Sed egestas commodo risus, eget molestie ipsum. Sed luctus non leo a porttitor. Nunc venenatis fermentum elit, et pharetra enim fermentum vel. Phasellus ultrices nunc id ligula efficitur fringilla. Phasellus pellentesque et sem malesuada euismod.
+              <div id="resume" class="scrollResume" style="max-height: 650px; width: 420px">
 
-                Suspendisse eu ligula lacus. Duis rhoncus eros ipsum. Vivamus quis posuere velit. Integer quis suscipit urna. Nunc dictum tortor justo, nec elementum lorem consectetur ac. Sed lobortis dapibus mauris, ut sollicitudin tortor tempor nec. Maecenas luctus est nisl, lacinia semper justo interdum sed. Suspendisse eu porta orci. Donec et erat nec lectus tincidunt iaculis dignissim porta ipsum. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin ante urna, auctor a nulla sit amet, mollis varius massa. Donec congue, nisl et tempus elementum, justo purus pellentesque erat.
-              </p>
-                
+             </div>  
             </div>
           </div>
           <!-- Coluna para Dados -->
@@ -177,23 +175,26 @@
   <!--ABRE AS INFORMAÇÔES DA OPÇÃO "DataInput"-->
 
   <div id="popup-dataInput" class="popup">
-    <button id="fecheInformation" class="fechePopup" onclick="fecheDataInput()">X</button>
+    <button id="fecheInformation" class="fechePopup"  onclick="fecheDataInput()">X</button>
     <h3>Data Input</h3>
-    <label for="">R: </label>
-    <input type="number" id="dataInput_R"><br>
-    <label for="">Mr: </label>
-    <input type="number" id="dataInput_Mr"><br>
-    <label for="">Sr: </label>
-    <input type="number" id="dataInput_Sr"><br>
-    <label for="">N: </label>
-    <input type="number" id="dataInput_N"><br>
-    <label for="">Mn: </label>
-    <input type="number" id="dataInput_Mn"><br>
-    <label for="">Sn: </label>
-    <input type="number" id="dataInput_Sn"><br>
+    <div id="divLabelsInputs" class="form-group" >
+      <label for="Name">Name: </label>
+      <input type="text" class="form-control" id="dataInput_Name">
+      <label for="R">R: </label>
+      <input type="number" class="form-control" id="dataInput_R">
+      <label for="Mr">Mr: </label>
+      <input type="number" class="form-control" id="dataInput_Mr">
+      <label for="Sr">Sr: </label>
+      <input type="number" class="form-control" id="dataInput_Sr">
+      <label for="N">N: </label>
+      <input type="number" class="form-control" id="dataInput_N">
+      <label for="Mn">Mn: </label>
+      <input type="number" class="form-control" id="dataInput_Mn">
+      <label for="Sn">Sn: </label>
+      <input type="number" class="form-control" id="dataInput_Sn">
 
-    <button onclick="enviarDados()">Enviar</button>
-
+      <button class="btn btn-primary" onclick="enviarDados()">Enviar</button>
+    </div>
   </div>
 
 
@@ -305,18 +306,33 @@
     </div>
   </div>
 
-  <!--ABRE AS INFORMAÇÔES DA OPÇÃO "Information"-->
-  <div id="popup-information" class="popup">
-    <button id="fecheInformation" class="fechePopup" onclick="fecheInformation()">X</button>
-    <h2>Information</h2>
-
-
-
-  </div>
 
   <!--ABRE AS INFORMAÇÔES DA OPÇÃO "Apperance"-->
 
+  <div id="popup-apperance" class="popup">
+    <button id="fecheApperance" class="fechePopup" onclick="fecheApperance()">X</button>
+    <h3>Apperance Configuration</h3>
+    <div class="inline">
+      <button type="button" class="btn btn-primary" onclick="; toggleActiveButton(this)">Axes</button>
+      <button type="button" class="btn btn-primary" onclick="; toggleActiveButton(this)">Resources</button>
+      <button type="button" class="btn btn-primary" onclick="; toggleActiveButton(this)">Sustainability</button>
+      <button type="button" class="btn btn-primary" onclick="; toggleActiveButton(this)">Sensibility</button>
+      <button type="button" class="btn btn-primary" onclick="; toggleActiveButton(this)">Simergy</button>
+      <button type="button" class="btn btn-primary" onclick="; toggleActiveButton(this)">ZOOM</button>
+    </div>
+  </div>
+
   <!--ABRE AS INFORMAÇÔES DA OPÇÃO "Print And Export"-->
+  <div id="popup-PrintAndExport" class="popup">
+    <button id="fechePrintAndExport"  class="fechePopup"  onclick="fechePrintAndExport()">X</button>
+    <h3>Print And Export</h3>
+    <div class="inline">
+      <button class="btn btn-primary" onclick="exportCanvasPNG()">PNG</button>
+      <button class="btn btn-primary" onclick="exportCanvasCroppedBackground()">Cropped background</button>
+      <button class="btn btn-primary" onclick="exportTableInPDF()">Print Table</button>
+      <button class="btn btn-primary" onclick="exportCanvasPDF()">Diagram in PDF</button>
+    </div>
+  </div>
 
   <!--
 
@@ -325,13 +341,13 @@
     ==================================================
 
   -->
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
-    integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous">
-  </script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.4.1/jspdf.debug.js" integrity="sha384-THVO/sM0mFD9h7dfSndI6TS0PgAGavwKvB5hAxRRvc0o9cPLohB0wb/PTA7LdUHs" crossorigin="anonymous"></script>
   <script src="js/main.js">
 
   </script>
+  
 
 </body>
 
