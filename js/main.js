@@ -1,4 +1,6 @@
-const rawData = [{
+var rawData = [{
+        id: 1,
+
         R: 1.73E+01,
         Mr: 5.11E+00,
         Sr: 1.84E+01,
@@ -8,6 +10,8 @@ const rawData = [{
         label: "ArcoIris"
     },
     {
+        id: 2,
+
         R: 4.00E+00,
         Mr: 5.00E+00,
         Sr: 6.00E+00,
@@ -17,6 +21,8 @@ const rawData = [{
         label: "Polo Camiseta"
     },
     {
+        id: 3,
+
         R: 1.73E+01,
         Mr: 1.40E-01,
         Sr: 9.50E+00,
@@ -148,8 +154,10 @@ function desenharGraficoTernario() {
     }
 
     // Desenha os pontos no gráfico ternário
-    rawData.forEach((point, index) => {
+    rawData.forEach((point) => {
         // Normaliza os dados para a escala do gráfico ternário (0 a 1)
+        
+
         const normalizedPoint = {
             A: point.R / (point.R + point.N + point.Mr + point.Sr + point.Mn + point.Sn),
             B: point.Mr / (point.R + point.N + point.Mr + point.Sr + point.Mn + point.Sn),
@@ -174,6 +182,7 @@ function desenharGraficoTernario() {
             U: point.porcentageSr = (point.Sr) / point.Y,
             V: point.porcentageMn = (point.Mn) / point.Y,
             W: point.porcentageSn = (point.Sn) / point.Y,
+            X: point.id
         };
 
         // Normaliza os valores  
@@ -183,7 +192,7 @@ function desenharGraficoTernario() {
         var pixel = convertToPixel(x, y);
 
         // Define uma cor baseada no índice do ponto
-        var hue = (index * 137.508) % 360; // Use um número primo para garantir variação
+        var hue = (point.id * 137.508) % 360; // Use um número primo para garantir variação
         var [r, g, b] = hslToRgb(hue / 360, 0.5, 0.5);
 
         
@@ -221,8 +230,29 @@ function desenharGraficoTernario() {
             ctx.lineWidth = 2;
             ctx.stroke();
             ctx.closePath();
+
+            // Desenha linhas conectando o ponto Simergy aos outros pontos
+            ctx.beginPath();
+            ctx.moveTo(pixel.x, pixel.y); // Move o cursor para o ponto Simergy
+
+             // Desenha linhas conectando o ponto Simergy a cada outro ponto
+             rawData.forEach((otherPoint) => {
+                if (otherPoint.label !== "Simergy") {
+                    const otherX = (2 * otherPoint.Fi + otherPoint.Ró - 1) / Math.sqrt(3);
+                    const otherY = otherPoint.Ró;
+                    const otherPixel = convertToPixel(otherX, otherY);
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(pixel.x, pixel.y); // Move o cursor para o ponto Simergy
+                    ctx.lineTo(otherPixel.x, otherPixel.y);
+                    ctx.strokeStyle = "red";
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                    ctx.closePath();
+                }
+            });
         } else {
-            ctx.fillText(counter, pixel.x + 10, pixel.y + 6);
+            ctx.fillText(point.id, pixel.x + 10, pixel.y + 6);
         }
 
         // Adiciona um evento de mouseover para exibir o rótulo quando o mouse passar sobre o ponto
@@ -407,10 +437,64 @@ function fecheDataInput() {
     dataInputPopUp.classList.remove("open-popup");
 }
 
+function enviarDados() {
+    // Obtenha os valores dos campos de entrada
+    var name = document.getElementById('dataInput_Name').value;
+    var R = parseFloat(document.getElementById('dataInput_R').value);
+    var Mr = parseFloat(document.getElementById('dataInput_Mr').value);
+    var Sr = parseFloat(document.getElementById('dataInput_Sr').value);
+    var N = parseFloat(document.getElementById('dataInput_N').value);
+    var Mn = parseFloat(document.getElementById('dataInput_Mn').value);
+    var Sn = parseFloat(document.getElementById('dataInput_Sn').value);
+
+    // Traduza os valores para notação científica
+    R = R.toExponential();
+    Mr = Mr.toExponential();
+    Sr = Sr.toExponential();
+    N = N.toExponential();
+    Mn = Mn.toExponential();
+    Sn = Sn.toExponential();
+
+    // Adicione os dados à variável rawData
+    rawData.push({
+        id: rawData.length + 1, // Determine o próximo ID
+        R: R,
+        Mr: Mr,
+        Sr: Sr,
+        N: N,
+        Mn: Mn,
+        Sn: Sn,
+        label: name // Use o nome fornecido como rótulo
+    });
+/*
+    for (var i = 0; i < rawData.length; i++) {
+        var item = rawData[i];
+        var message = "ID: " + item.id + ", R: " + item.R + ", Mr: " + item.Mr + ", Sr: " + item.Sr + ", N: " + item.N + ", Mn: " + item.Mn + ", Sn: " + item.Sn + ", Label: " + item.label;
+        alert(message);
+    }
+*/
+
+    // Limpe os campos de entrada após o envio
+    limparCamposDataInput();
+}
+
+function limparCamposDataInput() {
+    // Limpe todos os campos de entrada
+    document.getElementById('dataInput_Name').value = '';
+    document.getElementById('dataInput_R').value = '';
+    document.getElementById('dataInput_Mr').value = '';
+    document.getElementById('dataInput_Sr').value = '';
+    document.getElementById('dataInput_N').value = '';
+    document.getElementById('dataInput_Mn').value = '';
+    document.getElementById('dataInput_Sn').value = '';
+}
+
 
 /*
 POINTS
 */
+
+
 
 let pointsPopUp = document.getElementById('popup-points')
 
@@ -423,9 +507,14 @@ function fechePoints() {
     pointsPopUp.classList.remove("open-popup");
 }
 
-// Função para adicionar pontos dinamicamente
+
+// Crie uma cópia imutável dos dados originais
+const originalDataArray = [...rawData];
+
 function adicionarPontos() {
     const pointsContainer = document.getElementById('points-container');
+
+    rawData.sort((a, b) => a.id - b.id);
 
     // Iterar sobre os dados brutos e adicionar os pontos
     rawData.forEach((point, index) => {
@@ -438,24 +527,31 @@ function adicionarPontos() {
         pointNumber.textContent = `${index + 1} `;
         pointDiv.appendChild(pointNumber);
 
-
         // Criar uma checkbox para ativar/desativar o ponto
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
-        checkbox.id = `checkbox-${index} `;
-        checkbox.checked = true; 
-        pointDiv.appendChild(checkbox);
-
-        // Adicionar um ouvinte de evento para monitorar as mudanças na checkbox
+        checkbox.id = `checkbox-${point.id}`;
+        checkbox.checked = true; // Definir como marcado por padrão
+        checkbox.dataset.pointId = point.id; // Adicionar o ID do ponto como um atributo de dados
         checkbox.addEventListener('change', function() {
-            if (checkbox.checked) {
-                // Se estiver marcada, desenhar o ponto no gráfico
-                exibirPontoNoGrafico(point);
+            if (!this.checked) {
+                // Se a checkbox for marcada, remova o ponto correspondente dos dados brutos
+                const pointId = parseInt(this.dataset.pointId);
+                const pointIndex = rawData.findIndex(p => p.id === pointId);
+                if (pointIndex !== -1) {
+                    rawData.splice(pointIndex, 1);
+                }
+                
             } else {
-                // Se não estiver marcada, ocultar o ponto do gráfico
-                ocultarPontoNoGrafico(point);
+                // Se a checkbox for desmarcada, adicione o ponto correspondente de volta aos dados originais
+                const pointId = parseInt(this.dataset.pointId);
+                const originalPoint = originalDataArray.find(p => p.id === pointId);
+                if (originalPoint) {
+                    rawData.push({ ...originalPoint });
+                }
             }
         });
+        pointDiv.appendChild(checkbox);
 
         // Criar um input desativado para mostrar o nome do ponto
         const inputName = document.createElement('input');
@@ -464,59 +560,12 @@ function adicionarPontos() {
         inputName.disabled = true;
         pointDiv.appendChild(inputName);
 
-        
         // Adicionar o ponto à div de contêiner de pontos
         pointsContainer.appendChild(pointDiv);
     });
 }
 
-// Função para exibir um ponto no gráfico
-function exibirPontoNoGrafico(point) {
-    // Verifica se o ponto está oculto
-    if (!point.hidden) {
-        return; // Se não estiver oculto, não faz nada
-    }
 
-    // Restaura os valores originais do ponto
-    // Você precisa ter acesso aos valores originais dos pontos para isso funcionar
-    // Se os valores originais não estiverem disponíveis, você precisa armazená-los em algum lugar antes de ocultar o ponto
-    // Por exemplo, você pode criar uma cópia profunda dos dados brutos e trabalhar com essa cópia
-    // Aqui, presumimos que os valores originais estão disponíveis em point.originalData
-    point.R = point.originalData.R;
-    point.Mr = point.originalData.Mr;
-    point.Sr = point.originalData.Sr;
-    point.N = point.originalData.N;
-    point.Mn = point.originalData.Mn;
-    point.Sn = point.originalData.Sn;
-
-    // Remove a propriedade 'hidden' do ponto para indicar que ele não está mais oculto
-    delete point.hidden;
-
-    // Redesenha o gráfico ternário
-    desenharGraficoTernario();
-}
-
-// Função para ocultar um ponto do gráfico
-function ocultarPontoNoGrafico(point) {
-    // Verifica se o ponto já está oculto
-    if (point.hidden) {
-        return; // Se já estiver oculto, não faz nada
-    }
-
-    // Zera os valores relevantes do ponto
-    point.R = 0;
-    point.Mr = 0;
-    point.Sr = 0;
-    point.N = 0;
-    point.Mn = 0;
-    point.Sn = 0;
-
-    // Define uma propriedade 'hidden' no ponto para indicar que ele está oculto
-    point.hidden = true;
-
-    // Redesenha o gráfico ternário
-    desenharGraficoTernario();
-}
 
 // Chamada da função para adicionar os pontos ao carregar a página
 adicionarPontos();
@@ -561,7 +610,7 @@ const porcentageF = document.getElementById('porcentageF');
 
 
 // Preencher a lista de rótulos
-rawData.forEach(point => {
+originalDataArray.forEach(point => {
     const option = document.createElement('option');
     option.value = point.label;
     option.textContent = point.label;
@@ -573,7 +622,7 @@ function carregarDados() {
     const selectedLabel = labelSelect.value;
 
     // Encontrar o ponto correspondente aos dados brutos
-    const selectedPoint = rawData.find(point => point.label === selectedLabel);
+    const selectedPoint = originalDataArray.find(point => point.label === selectedLabel);
 
     // Preencher os campos de entrada com os dados do ponto selecionado
     if (selectedPoint) {
@@ -624,6 +673,7 @@ function mostrarConteudoLines(contentId) {
     document.getElementById('sourcesContent').classList.add('hidden');
     document.getElementById('sustainableContent').classList.add('hidden');
     document.getElementById('sensibilityContent').classList.add('hidden');
+    document.getElementById('simmergyContent').classList.add('hidden');
 
     // Mostra o conjunto de conteúdo específico
     document.getElementById(contentId).classList.remove('hidden');
@@ -1459,8 +1509,12 @@ function carregarDadosSensibility_Mn_Sn() {
 /*===========SIMERGY LINES===========*/
 
 const simergyButton = document.getElementById('bt_simergy');
+const checkboxPontoMedio = document.getElementById('toggleSimmergy');
+checkboxPontoMedio.addEventListener("change", togglePontoMedio);
 let pontoMedioAtivo = false;
 let pontoMedioData = null;
+
+
 
 function calcularPontoMedio(data) {
     const numberOfPoints = data.length;
@@ -1492,6 +1546,8 @@ function calcularPontoMedio(data) {
     const averageMn = sumMn / numberOfPoints;
     const averageSn = sumSn / numberOfPoints;
 
+    
+
     return {
         R: averageR,
         Mr: averageMr,
@@ -1503,44 +1559,97 @@ function calcularPontoMedio(data) {
     };
 }
 
+let pontoMedioAdicionado = false;
+
 function togglePontoMedio() {
-    pontoMedioAtivo = !pontoMedioAtivo;
 
-    if (pontoMedioAtivo) {
+    const checkboxPontoMedio = document.getElementById('toggleSimmergy');
+    const simergyPoint_Visivel = checkboxPontoMedio.checked;
+
+
+
+    // Verifique se houve alguma alteração nos valores dos pontos de Simergy
+    function verificarAlteracaoPontoSimergy() {
+        if (simergyPoint_Visivel) {
+            // Simule a desativação e reativação do checkbox sem alterar a interface do usuário
+            checkboxPontoMedio.checked = false;
+            checkboxPontoMedio.checked = true;
+
+            // Atualize os dados do ponto médio se necessário
+            if (pontoMedioAdicionado) {
+                const indexToRemove = rawData.findIndex(ponto => ponto.label === "Simergy");
+                if (indexToRemove !== -1) {
+                    rawData.splice(indexToRemove, 1);
+                }
+                pontoMedioData = calcularPontoMedio(rawData);
+                if (pontoMedioData) {
+                    rawData.push(pontoMedioData);
+                }
+            }
+        }
+    }
+
+    if (simergyPoint_Visivel && !pontoMedioAdicionado) {
         pontoMedioData = calcularPontoMedio(rawData);
-        rawData.push(pontoMedioData);
-        const pontoSimergia = calcularPontoMedio(rawData); // Calcula o ponto de simergia
-        const simergiaPixel = convertToPixel(0, 0); // Converte as coordenadas do ponto de simergia para pixels
-        
-        rawData.forEach(ponto => {
-            const pontoNormalizado = {
-                A: ponto.R / pontoSimergia.R,
-                B: ponto.Mr / pontoSimergia.Mr,
-                C: ponto.Sr / pontoSimergia.Sr,
-                D: ponto.N / pontoSimergia.N,
-                E: ponto.Mn / pontoSimergia.Mn,
-                F: ponto.Sn / pontoSimergia.Sn,
-            };
-            const x = (2 * pontoNormalizado.J + pontoNormalizado.H - 1) / Math.sqrt(3); // Calcula a coordenada x
-            const y = pontoNormalizado.H; // Usa a coordenada H diretamente
-
-            const startPoint = convertToPixel(x, y); // Converte as coordenadas para pixels
-
-            // Desenha uma linha do ponto de simergia para o ponto no gráfico ternário
-            ctx.beginPath();
-            ctx.moveTo(simergiaPixel.x, simergiaPixel.y);
-            ctx.lineTo(startPoint.x, startPoint.y);
-            ctx.strokeStyle = 'red'; // Cor da linha (você pode ajustar conforme necessário)
-            ctx.lineWidth = 1; // Largura da linha (você pode ajustar conforme necessário)
-            ctx.stroke();
-            ctx.closePath();
-        });
-
-    } else {
-        rawData.pop();
+        if (pontoMedioData) {
+            rawData.push(pontoMedioData);
+            pontoMedioAdicionado = true;
+        }
+    } else if (!simergyPoint_Visivel && pontoMedioAdicionado) {
+        const indexToRemove = rawData.findIndex(ponto => ponto.label === "Simergy");
+        if (indexToRemove !== -1) {
+            rawData.splice(indexToRemove, 1);
+            pontoMedioAdicionado = false;
+        }
         pontoMedioData = null;
     }
+
+    // Após realizar as operações, verifique se há alterações nos pontos de Simergy
+    verificarAlteracaoPontoSimergy();
+
 }
+
+function desenharLinhasSimmergy() {
+    const indexSimergy = rawData.findIndex(ponto => ponto.label === "Simergy");
+
+    // Verifique se o ponto "Simergy" foi encontrado
+    if (indexSimergy !== -1) {
+        // Extraia os dados do ponto "Simergy"
+        const simergyData = rawData[indexSimergy];
+        
+        // Agora você pode acessar os dados do ponto "Simergy" e desenhar as linhas conforme necessário
+        // Por exemplo, se simergyData contiver informações sobre as coordenadas do ponto, você pode usá-las para desenhar as linhas
+
+        var YMedio = simergyData.R + simergyData.Mr + simergyData.Sr + simergyData.N + simergyData.Mn + simergyData.Sn
+        var FiMedio = (simergyData.Mn + simergyData.Sn) / YMedio
+        var RóMedio = (simergyData.R + simergyData.Mr + simergyData.Sr) / YMedio
+
+        const x = (2 * FiMedio + RóMedio - 1) / Math.sqrt(3);
+        const y = RóMedio;
+
+        var pixel = convertToPixel(x, y);
+        
+        // Acessa o contexto do canvas
+        var canvas = document.getElementById('myCanvas');
+        var ctx = canvas.getContext('2d');
+        
+        // Configura o estilo do círculo
+        ctx.fillStyle = 'red';
+        
+        // Define o raio do círculo
+        var radius = 50; // Por exemplo, 50 pixels
+        
+        // Desenha o círculo
+        ctx.beginPath();
+        ctx.arc(pixel.x, pixel.y, radius, 0, 2 * Math.PI);
+        ctx.fill();
+    }
+}
+
+
+
+
+
 
 
 /*
@@ -1616,7 +1725,43 @@ function exportCanvasPNG() {
     img.src = dataURL;
 }
 
-// Exportar Diagrama como PDF
+function exportTableInPDF() {
+    const doc = new jsPDF();
+      
+      // Dados da tabela
+      const data = [
+        ["Nome", "Idade", "Cidade"],
+        ["João", "25", "São Paulo"],
+        ["Maria", "30", "Rio de Janeiro"],
+        ["José", "28", "Belo Horizonte"]
+      ];
+      
+      // Configurações da tabela
+      const columns = ["Nome", "Idade", "Cidade"];
+      const rows = data.slice(1);
+      
+      // Definindo o espaço entre as colunas
+      const columnSpacing = 40;
+      const startY = 20;
+      
+      // Adicionando cabeçalho
+      doc.setFontSize(12);
+      doc.text("Tabela de Dados", 20, 10);
+      
+      // Adicionando linhas da tabela
+      doc.autoTable(columns, rows, {
+        startY: startY,
+        styles: { fillColor: [100, 100, 255] },
+        columnStyles: { 0: { cellWidth: 50 }, 1: { cellWidth: 20 }, 2: { cellWidth: 40 } }
+      });
+      
+      // Salvando o PDF
+      doc.save("tabela.pdf");
+    }
+
+
+
+
 
 // Função para exportar o canvas para PDF
 function exportCanvasPDF() {
@@ -1634,25 +1779,7 @@ function exportCanvasPDF() {
     pdf.save('ternaryChart.pdf');
 }
 
-function exportTableInPDF() {
-    const doc = new jsPDF();
 
-    // Dados da tabela
-    const data = [
-    ["Nome", "Idade", "Cidade"],
-    ["João", 30, "São Paulo"],
-    ["Maria", 25, "Rio de Janeiro"],
-    ["Pedro", 35, "Belo Horizonte"]
-    ];
-
-    // Criando a tabela
-    doc.autoTable({
-    head: [data[0]],
-    body: data.slice(1)
-    });
-
-    doc.save("tabela.pdf");
-}
 
 //Função que faz o fundo recortado 
 
@@ -1721,12 +1848,19 @@ switchRenovabilidadeParcial.addEventListener('change', () => {
 });
 
 
+
+
 /*
 
 MOSTRAR AS LINHAS NO GRÁFICO
 
 
 */
+
+function mostrarNovosPontos() {
+    enviarDados();
+    requestAnimationFrame(mostrarNovosPontos);
+}
 
 //faz a linha se mover
 function animate() {
@@ -1739,20 +1873,23 @@ function ShowSimmetryLines() {
     requestAnimationFrame(ShowSimmetryLines);
 }
 
+
+
+
 function ShowRegions() {
     mostrarRegios();
     requestAnimationFrame(ShowRegions);
 }
 
 
-function ShowSimmergLineN() {
+function ShowSourceLineN() {
     mostrarSourceLinesN()
-    requestAnimationFrame(ShowSimmergLineN);
+    requestAnimationFrame(ShowSourceLineN);
 }
 
-function ShowSimmergLineMn_Sn() {
+function ShowSourceLineMn_Sn() {
     mostrarSourceLinesMn_Sn()
-    requestAnimationFrame(ShowSimmergLineMn_Sn);
+    requestAnimationFrame(ShowSourceLineMn_Sn);
 }
 
 function ShowLinhasSensibilidadeR_Mr_Sr() {
@@ -1805,10 +1942,16 @@ function ShowHidePoints() {
     requestAnimationFrame(ShowHidePoints);
 }
 
+function ShowPontoMedio() {
+    togglePontoMedio();
+    requestAnimationFrame(ShowPontoMedio);
+}
+
 
 
 function ShowLines() {
     ShowSimmetryLines();
+    //mostrarNovosPontos();
     ShowRegions();
     animate();
     ShowSourceLinesMn_Sn();
@@ -1816,12 +1959,12 @@ function ShowLines() {
     ShowLinhasSensibilidadeR_Mr_Sr();
     ShowLinhasSensibilidadeN()
     ShowLinhasSensibilidade_Mn_Sn()
-    ShowSimmergLineN();
-    ShowSimmergLineMn_Sn();
+    ShowSourceLineN();
+    ShowSourceLineMn_Sn();
     ShowSustainableLine_ESI_K1();
     ShowSustainableLine_ESI_K2();
     ShowSustainableLine_ESI_K3();
-    ShowPontoMedio()
+    ShowPontoMedio();
 
 }
 

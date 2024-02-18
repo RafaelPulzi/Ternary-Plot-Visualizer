@@ -222,7 +222,7 @@
       <button type="button" class="btn btn-primary" onclick="mostrarConteudoLines('sourcesContent'); toggleActiveButton(this)">Sources</button>
       <button type="button" class="btn btn-primary" onclick="mostrarConteudoLines('sustainableContent'); toggleActiveButton(this)">Sustainable</button>
       <button type="button" class="btn btn-primary" onclick="mostrarConteudoLines('sensibilityContent'); toggleActiveButton(this)">Sensibility</button>
-      <button type="button" class="btn btn-primary" id="bt_simergy" onclick="togglePontoMedio(); toggleActiveButton(this)">Simergy</button>
+      <button type="button" class="btn btn-primary" onclick="mostrarConteudoLines('simmergyContent'); toggleActiveButton(this)">Simergy</button>
   </div>
   
   
@@ -302,9 +302,17 @@
     </div>
 </div>
 
-      </datalist>
-    </div>
+  <div id="simmergyContent" class="hidden"> 
+    <h3>Simmergy Point</h3>
+    <label for="toggleSimmergy">Ativar Simmergy Point</label>
+    <input type="checkbox" id="toggleSimmergy">
+    <div id="selectionShowLinesSimmergy"></div>
   </div>
+
+</div>
+  
+
+  
 
 
   <!--ABRE AS INFORMAÇÔES DA OPÇÃO "Apperance"-->
