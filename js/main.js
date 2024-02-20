@@ -89,8 +89,11 @@ function convertToPixel(x, y) {
 
 function clearAllData(){
     rawData = []
-    const table = document.getElementById('resume');
-    table.innerHTML = '';
+    // Selecione o tbody dentro da tabela com id 'resume'
+    const tbody = document.querySelector('#resume tbody');
+
+    // Remova todo o conteúdo do tbody
+    tbody.innerHTML = '';
     
 }
 
