@@ -86,6 +86,14 @@ function convertToPixel(x, y) {
     };
 }
 
+
+function clearAllData(){
+    rawData = []
+    const table = document.getElementById('resume');
+    table.innerHTML = '';
+    
+}
+
 /*                                                 
                              x   ,   y                       
                   R+Mr+Sr = (0   ,   1)                                  
@@ -235,13 +243,14 @@ function desenharGraficoTernario() {
             ctx.beginPath();
             ctx.moveTo(pixel.x, pixel.y); // Move o cursor para o ponto Simergy
 
-             // Desenha linhas conectando o ponto Simergy a cada outro ponto
-             rawData.forEach((otherPoint) => {
+             // Desenha linhas conectando o ponto Simergy aos outros pontos ativados
+            const pontosAtivados = obterPontosAtivados();
+            pontosAtivados.forEach((index) => {
+                const otherPoint = rawData[index];
                 if (otherPoint.label !== "Simergy") {
                     const otherX = (2 * otherPoint.Fi + otherPoint.Ró - 1) / Math.sqrt(3);
                     const otherY = otherPoint.Ró;
                     const otherPixel = convertToPixel(otherX, otherY);
-                    
                     ctx.beginPath();
                     ctx.moveTo(pixel.x, pixel.y); // Move o cursor para o ponto Simergy
                     ctx.lineTo(otherPixel.x, otherPixel.y);
@@ -347,17 +356,21 @@ function criarTabela(rawData) {
             const MnSn = data.Mn + data.Sn;
             const RN = data.R + data.N;
             const RMrSrSn = data.R + data.Mr + data.Sr + data.Sn;
+            const EYR = (1 / MnSn)
+            const ELR = ((data.N + data.Mn + data.Sn) / (data.R + data.Mr + data.Sr))
 
             emergyIndices = [
-                (data.Y / MnSn).toFixed(2),
+                (1 / MnSn).toFixed(2), //Conta com o Y estava dando NaN
                 ((data.Mr + data.Mn + data.Sr + data.Sn) / RN).toFixed(2),
                 ((data.N + data.Mn + data.Sn) / (data.R + data.Mr + data.Sr)).toFixed(2),
-                ((data.Y / MnSn) / ((data.N + data.Mn + data.Sn) / (data.R + data.Mr + data.Sr))).toFixed(2),
-                ((data.R + data.Mr + data.Sr) / totalY).toFixed(2),
+                (EYR/ELR).toFixed(2),
+                (((data.R + data.Mr + data.Sr) / totalY)*100).toFixed(2),
                 '',
                 '',
                 '',
             ];
+ 
+
 
             const rowData = [
                 index + 1, // Número do ponto
@@ -398,19 +411,9 @@ function criarTabela(rawData) {
 }
 
 
-
-
-
-
-
-
-
 const tabela = criarTabela(rawData);
 // Adiciona a tabela ao elemento desejado do DOM
 document.getElementById('resume').appendChild(tabela);
-
-
-
 
 
 /*
@@ -437,45 +440,61 @@ function fecheDataInput() {
     dataInputPopUp.classList.remove("open-popup");
 }
 
+
+
+// Função para enviar dados
 function enviarDados() {
     // Obtenha os valores dos campos de entrada
     var name = document.getElementById('dataInput_Name').value;
-    var R = parseFloat(document.getElementById('dataInput_R').value);
-    var Mr = parseFloat(document.getElementById('dataInput_Mr').value);
-    var Sr = parseFloat(document.getElementById('dataInput_Sr').value);
-    var N = parseFloat(document.getElementById('dataInput_N').value);
-    var Mn = parseFloat(document.getElementById('dataInput_Mn').value);
-    var Sn = parseFloat(document.getElementById('dataInput_Sn').value);
 
-    // Traduza os valores para notação científica
-    R = R.toExponential();
-    Mr = Mr.toExponential();
-    Sr = Sr.toExponential();
-    N = N.toExponential();
-    Mn = Mn.toExponential();
-    Sn = Sn.toExponential();
+    // Se os campos estiverem preenchidos
+    if (name.trim() !== '') {
+        var R = parseFloat(document.getElementById('dataInput_R').value);
+        var Mr = parseFloat(document.getElementById('dataInput_Mr').value);
+        var Sr = parseFloat(document.getElementById('dataInput_Sr').value);
+        var N = parseFloat(document.getElementById('dataInput_N').value);
+        var Mn = parseFloat(document.getElementById('dataInput_Mn').value);
+        var Sn = parseFloat(document.getElementById('dataInput_Sn').value);
 
-    // Adicione os dados à variável rawData
-    rawData.push({
-        id: rawData.length + 1, // Determine o próximo ID
-        R: R,
-        Mr: Mr,
-        Sr: Sr,
-        N: N,
-        Mn: Mn,
-        Sn: Sn,
-        label: name // Use o nome fornecido como rótulo
-    });
-/*
-    for (var i = 0; i < rawData.length; i++) {
-        var item = rawData[i];
-        var message = "ID: " + item.id + ", R: " + item.R + ", Mr: " + item.Mr + ", Sr: " + item.Sr + ", N: " + item.N + ", Mn: " + item.Mn + ", Sn: " + item.Sn + ", Label: " + item.label;
-        alert(message);
+        // Determine o próximo ID
+        var nextID = rawData.filter(point => point.label !== "Simergy").length + 1;
+
+        // Adicione os dados à variável rawData
+        rawData.push({
+            id: nextID, // Determine o próximo ID
+            R: R,
+            Mr: Mr,
+            Sr: Sr,
+            N: N,
+            Mn: Mn,
+            Sn: Sn,
+            label: name // Use o nome fornecido como rótulo
+        });
+
+        // Limpe os campos de entrada após o envio
+        limparCamposDataInput();
+
+        // Atualize o labelSelect com os novos rótulos
+        atualizarLabelSelect();
+
+        // Limpe o conteúdo atual da tabela
+        const table = document.getElementById('resume');
+        table.innerHTML = '';
+        const tabela = criarTabela(rawData);
+        // Adiciona a tabela ao elemento desejado do DOM
+        document.getElementById('resume').appendChild(tabela);
+
+        const pointsContainer = document.getElementById('points-container');
+        pointsContainer.innerHTML = '';
+        adicionarPontos();
+
+        
+
+
+        desenharGraficoTernario();
+    } else {
+        alert('Por favor, preencha todos os campos de entrada.');
     }
-*/
-
-    // Limpe os campos de entrada após o envio
-    limparCamposDataInput();
 }
 
 function limparCamposDataInput() {
@@ -509,7 +528,7 @@ function fechePoints() {
 
 
 // Crie uma cópia imutável dos dados originais
-const originalDataArray = [...rawData];
+var originalDataArray = [...rawData];
 
 function adicionarPontos() {
     const pointsContainer = document.getElementById('points-container');
@@ -577,18 +596,6 @@ adicionarPontos();
 ABERTURA DE POPUPS- INFORMATION
 */
 
-let informationPopUp = document.getElementById('popup-information')
-
-function abraInformation() {
-    informationPopUp.classList.add("open-popup");
-}
-
-
-function fecheInformation() {
-    informationPopUp.classList.remove("open-popup");
-}
-
-
 
 const labelSelect = document.getElementById('labelSelect');
 const inputR = document.getElementById('inputR');
@@ -610,7 +617,7 @@ const porcentageF = document.getElementById('porcentageF');
 
 
 // Preencher a lista de rótulos
-originalDataArray.forEach(point => {
+rawData.forEach(point => {
     const option = document.createElement('option');
     option.value = point.label;
     option.textContent = point.label;
@@ -622,7 +629,7 @@ function carregarDados() {
     const selectedLabel = labelSelect.value;
 
     // Encontrar o ponto correspondente aos dados brutos
-    const selectedPoint = originalDataArray.find(point => point.label === selectedLabel);
+    const selectedPoint = rawData.find(point => point.label === selectedLabel);
 
     // Preencher os campos de entrada com os dados do ponto selecionado
     if (selectedPoint) {
@@ -677,6 +684,26 @@ function mostrarConteudoLines(contentId) {
 
     // Mostra o conjunto de conteúdo específico
     document.getElementById(contentId).classList.remove('hidden');
+}
+
+// Função para atualizar o labelSelect com novos rótulos
+function atualizarLabelSelect() {
+    // Limpe todos os rótulos existentes no labelSelect
+    labelSelect.innerHTML = '';
+
+    // Adicione a opção "Selecione..."
+    const optionSelecione = document.createElement('option');
+    optionSelecione.value = ""; // Valor vazio
+    optionSelecione.textContent = "Selecione...";
+    labelSelect.appendChild(optionSelecione);
+
+    // Adicione os novos rótulos ao labelSelect
+    rawData.forEach(point => {
+        const option = document.createElement('option');
+        option.value = point.label;
+        option.textContent = point.label;
+        labelSelect.appendChild(option);
+    });
 }
 
 /*
@@ -1002,11 +1029,18 @@ function mostrarRegios() {
         for (var i = numsRegiosFirstLine.length - 1; i >= numsRegiosFirstLine.length - 11; i--) {
             var pixel = convertToPixel(numsRegiosFirstLine[i], Y_valuesFisrtDiagonalLine_invertidos[i]);
             ctx.lineTo(pixel.x, pixel.y);
+
+            // Verifica se o ponto é (0, 0) e, se for, encerra o loop
+            if (pixel.x === 0 && pixel.y === 0) {
+                break;
+            }
         }
         // Define a cor da linha
         ctx.strokeStyle = "black";
         ctx.stroke();
         ctx.closePath();
+
+
 
         //                         SEGUNDA LINHA DIAGONAL 
 
@@ -1035,6 +1069,8 @@ function mostrarRegios() {
         for (var i = 0; i < 9; i++) {
             var pixel = convertToPixel(numsRegiosSecondLine[i], Y_valuesSecondDiagonalLine_invertidos[i]);
             ctx.lineTo(pixel.x, pixel.y);
+
+                    
         }
         // Define a cor da linha
         ctx.strokeStyle = "black";
@@ -1514,10 +1550,8 @@ checkboxPontoMedio.addEventListener("change", togglePontoMedio);
 let pontoMedioAtivo = false;
 let pontoMedioData = null;
 
-
-
-function calcularPontoMedio(data) {
-    const numberOfPoints = data.length;
+function calcularPontoMedio(data, pontosAtivados) {
+    const numberOfPoints = pontosAtivados.length;
 
     if (numberOfPoints === 0) {
         return null;
@@ -1530,7 +1564,8 @@ function calcularPontoMedio(data) {
         sumMn = 0,
         sumSn = 0;
 
-    for (const point of data) {
+    for (const pointIndex of pontosAtivados) {
+        const point = data[pointIndex];
         sumR += point.R;
         sumMr += point.Mr;
         sumSr += point.Sr;
@@ -1546,8 +1581,6 @@ function calcularPontoMedio(data) {
     const averageMn = sumMn / numberOfPoints;
     const averageSn = sumSn / numberOfPoints;
 
-    
-
     return {
         R: averageR,
         Mr: averageMr,
@@ -1562,35 +1595,14 @@ function calcularPontoMedio(data) {
 let pontoMedioAdicionado = false;
 
 function togglePontoMedio() {
-
     const checkboxPontoMedio = document.getElementById('toggleSimmergy');
     const simergyPoint_Visivel = checkboxPontoMedio.checked;
 
-
-
-    // Verifique se houve alguma alteração nos valores dos pontos de Simergy
-    function verificarAlteracaoPontoSimergy() {
-        if (simergyPoint_Visivel) {
-            // Simule a desativação e reativação do checkbox sem alterar a interface do usuário
-            checkboxPontoMedio.checked = false;
-            checkboxPontoMedio.checked = true;
-
-            // Atualize os dados do ponto médio se necessário
-            if (pontoMedioAdicionado) {
-                const indexToRemove = rawData.findIndex(ponto => ponto.label === "Simergy");
-                if (indexToRemove !== -1) {
-                    rawData.splice(indexToRemove, 1);
-                }
-                pontoMedioData = calcularPontoMedio(rawData);
-                if (pontoMedioData) {
-                    rawData.push(pontoMedioData);
-                }
-            }
-        }
-    }
+    // Obter os pontos ativados
+    const pontosAtivados = obterPontosAtivados();
 
     if (simergyPoint_Visivel && !pontoMedioAdicionado) {
-        pontoMedioData = calcularPontoMedio(rawData);
+        pontoMedioData = calcularPontoMedio(rawData, pontosAtivados);
         if (pontoMedioData) {
             rawData.push(pontoMedioData);
             pontoMedioAdicionado = true;
@@ -1606,47 +1618,111 @@ function togglePontoMedio() {
 
     // Após realizar as operações, verifique se há alterações nos pontos de Simergy
     verificarAlteracaoPontoSimergy();
-
+    atualizarLabelSelect();
 }
 
-function desenharLinhasSimmergy() {
-    const indexSimergy = rawData.findIndex(ponto => ponto.label === "Simergy");
+// Função para obter os pontos ativados
+function obterPontosAtivados() {
+    const pontosAtivados = [];
+    const checkboxes = document.querySelectorAll('input[type="checkbox"][id^="checkbox-simmergy-"]');
 
-    // Verifique se o ponto "Simergy" foi encontrado
-    if (indexSimergy !== -1) {
-        // Extraia os dados do ponto "Simergy"
-        const simergyData = rawData[indexSimergy];
-        
-        // Agora você pode acessar os dados do ponto "Simergy" e desenhar as linhas conforme necessário
-        // Por exemplo, se simergyData contiver informações sobre as coordenadas do ponto, você pode usá-las para desenhar as linhas
+    checkboxes.forEach((checkbox, index) => {
+        if (checkbox.checked) {
+            pontosAtivados.push(index);
+        }
+    });
 
-        var YMedio = simergyData.R + simergyData.Mr + simergyData.Sr + simergyData.N + simergyData.Mn + simergyData.Sn
-        var FiMedio = (simergyData.Mn + simergyData.Sn) / YMedio
-        var RóMedio = (simergyData.R + simergyData.Mr + simergyData.Sr) / YMedio
+    return pontosAtivados;
+}
 
-        const x = (2 * FiMedio + RóMedio - 1) / Math.sqrt(3);
-        const y = RóMedio;
+// Verifique se houve alguma alteração nos valores dos pontos de Simergy
+function verificarAlteracaoPontoSimergy() {
+    const checkboxPontoMedio = document.getElementById('toggleSimmergy');
+    const simergyPoint_Visivel = checkboxPontoMedio.checked;
 
-        var pixel = convertToPixel(x, y);
-        
-        // Acessa o contexto do canvas
-        var canvas = document.getElementById('myCanvas');
-        var ctx = canvas.getContext('2d');
-        
-        // Configura o estilo do círculo
-        ctx.fillStyle = 'red';
-        
-        // Define o raio do círculo
-        var radius = 50; // Por exemplo, 50 pixels
-        
-        // Desenha o círculo
-        ctx.beginPath();
-        ctx.arc(pixel.x, pixel.y, radius, 0, 2 * Math.PI);
-        ctx.fill();
+    if (simergyPoint_Visivel) {
+        // Simule a desativação e reativação do checkbox sem alterar a interface do usuário
+        checkboxPontoMedio.checked = false;
+        checkboxPontoMedio.checked = true;
+
+        // Atualize os dados do ponto médio se necessário
+        if (pontoMedioAdicionado) {
+            const indexToRemove = rawData.findIndex(ponto => ponto.label === "Simergy");
+            if (indexToRemove !== -1) {
+                rawData.splice(indexToRemove, 1);
+            }
+            const pontosAtivados = obterPontosAtivados();
+            pontoMedioData = calcularPontoMedio(rawData, pontosAtivados);
+            if (pontoMedioData) {
+                rawData.push(pontoMedioData);
+            }
+        }
     }
 }
 
+function adicionarPontosSimmergy() {
+    const pointsContainer = document.getElementById('selectionShowLinesSimmergy');
 
+    rawData.sort((a, b) => a.id - b.id);
+
+    // Iterar sobre os dados brutos e adicionar os pontos
+    rawData.forEach((point, index) => {
+        // Criar um elemento de div para o ponto
+        const pointDiv = document.createElement('div');
+        pointDiv.classList.add('point');
+
+        // Adicionar o número do ponto
+        const pointNumber = document.createElement('span');
+        pointNumber.textContent = `${index + 1} `;
+        pointDiv.appendChild(pointNumber);
+
+        // Criar uma checkbox para ativar/desativar o ponto
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = `checkbox-simmergy-${point.id}`;
+        checkbox.checked = true; // Definir como marcado por padrão
+        checkbox.dataset.pointId = point.id; // Adicionar o ID do ponto como um atributo de dados
+        pointDiv.appendChild(checkbox);
+        checkbox.addEventListener('change', function() {
+            const isChecked = checkbox.checked;
+
+            // Verificar se o checkbox está marcado ou não
+            if (!isChecked) {
+                // Desenha as linhas conectando o ponto Simergy aos outros pontos
+                apagarLinhasSimmergy(point);
+            } 
+        });
+
+        // Criar um input desativado para mostrar o nome do ponto
+        const inputName = document.createElement('input');
+        inputName.type = 'text';
+        inputName.value = point.label;
+        inputName.disabled = true;
+        pointDiv.appendChild(inputName);
+
+        // Adicionar o ponto à div de contêiner de pontos
+        pointsContainer.appendChild(pointDiv);
+    });
+    
+}
+
+// Função para apagar linhas conectando o ponto Simergy aos outros pontos
+function apagarLinhasSimmergy(point) {
+    const pixel = convertToPixel(point);
+    const otherPoints = rawData.filter(otherPoint => otherPoint.label !== "Simergy");
+
+    // Apaga linhas conectando o ponto Simergy a cada outro ponto
+    otherPoints.forEach(otherPoint => {
+        const otherX = (2 * otherPoint.Fi + otherPoint.Ró - 1) / Math.sqrt(3);
+        const otherY = otherPoint.Ró;
+        const otherPixel = convertToPixel({ x: otherX, y: otherY });
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height); // Limpa o canvas
+        desenharGraficoTernario(); // Redesenha o gráfico ternário
+    });
+}
+
+adicionarPontosSimmergy();
 
 
 
@@ -1726,38 +1802,21 @@ function exportCanvasPNG() {
 }
 
 function exportTableInPDF() {
-    const doc = new jsPDF();
-      
-      // Dados da tabela
-      const data = [
-        ["Nome", "Idade", "Cidade"],
-        ["João", "25", "São Paulo"],
-        ["Maria", "30", "Rio de Janeiro"],
-        ["José", "28", "Belo Horizonte"]
-      ];
-      
-      // Configurações da tabela
-      const columns = ["Nome", "Idade", "Cidade"];
-      const rows = data.slice(1);
-      
-      // Definindo o espaço entre as colunas
-      const columnSpacing = 40;
-      const startY = 20;
-      
-      // Adicionando cabeçalho
-      doc.setFontSize(12);
-      doc.text("Tabela de Dados", 20, 10);
-      
-      // Adicionando linhas da tabela
-      doc.autoTable(columns, rows, {
-        startY: startY,
-        styles: { fillColor: [100, 100, 255] },
-        columnStyles: { 0: { cellWidth: 50 }, 1: { cellWidth: 20 }, 2: { cellWidth: 40 } }
-      });
-      
-      // Salvando o PDF
-      doc.save("tabela.pdf");
-    }
+    const resumeDiv = document.getElementById("resume");
+
+    html2canvas(resumeDiv)
+        .then((canvas) => {
+            const canvasData = canvas.toDataURL("image/png", 1.0);
+            const canvasWidth = canvas.width;
+            const canvasHeight = canvas.height;
+            const pdf = new jsPDF("", "pt", "a4");
+            pdf.addImage(canvasData, "PNG", 0, 0, canvasWidth, canvasHeight, "", "FAST");
+            pdf.save("resume.pdf");
+        });
+}
+
+
+
 
 
 
