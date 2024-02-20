@@ -94,6 +94,8 @@ function clearAllData(){
 
     // Remova todo o conteúdo do tbody
     tbody.innerHTML = '';
+
+    limparCampos()
     
 }
 
