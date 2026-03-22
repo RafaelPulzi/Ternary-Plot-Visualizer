@@ -1,8 +1,3 @@
-**Análise do projeto atual:**
-O repositório parece conter um projeto front-end (HTML, CSS, JS) relacionado à criação de gráficos, possivelmente um **gráfico ternário** (pelo nome antigo `GraficoTernarioFuncionaliodades_e_Front`). O código inclui funcionalidades para manipular dados e limpar o gráfico.
-
----
-
 # Ternary Plot Visualizer
 
 ![HTML5](https://img.shields.io/badge/html5-%23E34F26.svg?style=for-the-badge&logo=html5&logoColor=white)
